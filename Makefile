@@ -20,4 +20,5 @@ sage.tar.gz:
 sage: sage.tar.gz
 	mkdir -p sage
 	tar -xvf sage.tar.gz -C sage --strip-components=1
+	yes | ./sage/sage -i qepcad
 
