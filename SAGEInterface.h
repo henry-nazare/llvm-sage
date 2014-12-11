@@ -79,6 +79,8 @@ public:
   bool isEQ(PyObject *First, PyObject *Second);
   bool isNE(PyObject *First, PyObject *Second);
 
+  bool isConstant(PyObject *Expr);
+
   int compare(PyObject *First, PyObject *Second);
 
 private:

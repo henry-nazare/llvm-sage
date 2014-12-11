@@ -223,6 +223,10 @@ bool SAGEExpr::isNE(const SAGEExpr &Other) const {
   return SI_.isNE(Expr_, Other.getExpr());
 }
 
+bool SAGEExpr::isConstant() const {
+  return SI_.isConstant(Expr_);
+}
+
 SAGEExpr SAGEExpr::getNaN(SAGEInterface &SI) {
   static SAGEExpr NaN(SI, SI.getNaN());
   return NaN;

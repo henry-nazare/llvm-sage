@@ -138,6 +138,10 @@ bool SAGEInterface::isNE(PyObject *First, PyObject *Second) {
   return PI_->callSelf("is_ne", First, {Second}) == Py_True;
 }
 
+bool SAGEInterface::isConstant(PyObject *Expr) {
+  return PI_->callSelf("is_constant", Expr, {}) == Py_True;
+}
+
 int SAGEInterface::compare(PyObject *First, PyObject *Second) {
   PyObject *Res = PI_->callSelf("compare", First, {Second});
   assert(PyInt_Check(Res) && "Result should be an integer");

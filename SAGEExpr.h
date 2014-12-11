@@ -58,6 +58,8 @@ public:
   bool isEQ(const SAGEExpr &Other) const;
   bool isNE(const SAGEExpr &Other) const;
 
+  bool isConstant() const;
+
   static SAGEExpr getNaN(SAGEInterface &SI);
   static SAGEExpr getPlusInf(SAGEInterface &SI);
   static SAGEExpr getMinusInf(SAGEInterface &SI);
