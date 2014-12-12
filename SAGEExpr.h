@@ -10,7 +10,7 @@ public:
   SAGEExpr(SAGEInterface &SI);
   SAGEExpr(SAGEInterface &SI, int Int);
   SAGEExpr(SAGEInterface &SI, APInt Int);
-  SAGEExpr(SAGEInterface &SI, Twine Name);
+  SAGEExpr(SAGEInterface &SI, const Twine &Name);
   SAGEExpr(SAGEInterface &SI, PyObject *Obj);
   SAGEExpr(SAGEInterface &SI, const Value *V);
 

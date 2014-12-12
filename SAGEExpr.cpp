@@ -4,9 +4,11 @@
 #include "SAGEExpr.h"
 
 #include "llvm/IR/Argument.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include <map>
+#include <string>
 
 using namespace llvm;
 
@@ -29,7 +31,7 @@ SAGEExpr::SAGEExpr(SAGEInterface &SI, APInt Int)
   assert(Expr_ != nullptr);
 }
 
-SAGEExpr::SAGEExpr(SAGEInterface &SI, Twine Name)
+SAGEExpr::SAGEExpr(SAGEInterface &SI, const Twine &Name)
   : SI_(SI), Expr_(SI.var(Name.str().c_str())) {
   assert(Expr_ != nullptr);
 }
@@ -56,17 +58,17 @@ SAGEExpr::SAGEExpr(SAGEInterface &SI, const Value *V)
     return;
   }
 
-  Twine Name;
+  std::string Name;
   if (V->hasName()) {
     if (isa<const Instruction>(V) || isa<const Argument>(V))
-      Name = "_" + V->getName();
+      Name = ("_" + V->getName()).str();
     else
-      Name = "__SRA_SYM_UNKNOWN_" + V->getName() + "__";
+      Name = ("__SRA_SYM_UNKNOWN_" + V->getName() + "__").str();
   } else {
     Name = "__SRA_SYM_UNAMED__";
   }
 
-  Expr_ = SI_.var(Name.str().c_str());
+  Expr_ = SI_.var(Name.c_str());
   assert(Expr_);
   SAGEExprs[V] = Expr_;
 }
