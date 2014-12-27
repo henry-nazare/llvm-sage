@@ -14,7 +14,7 @@ ifeq ($(OS), Linux)
   else ifeq ($(SAGE_ARCH), i386)
     SAGE_BITS = 32
   else
-  	$(error Unknown architecture: $(SAGE_ARCH))
+    $(error Unknown architecture: $(SAGE_ARCH))
   endif
 
   SAGE_OS = Linux-Ubuntu_8.04_$(SAGE_ARCH)
