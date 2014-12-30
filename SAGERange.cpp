@@ -29,15 +29,19 @@ SAGERange SAGERange::operator-(const SAGERange& Other) const {
 }
 
 SAGERange SAGERange::operator*(const SAGERange& Other) const {
-  // FIXME: Not always valid.
-  return SAGERange(getLower() * Other.getUpper(),
-                   getUpper() * Other.getLower());
+  SAGEExpr LL = getLower() * Other.getLower(),
+           LU = getLower() * Other.getUpper(),
+           UL = getUpper() * Other.getLower(),
+           UU = getUpper() * Other.getUpper();
+  return SAGERange(LL.min(LU).min(UL).min(UU), LL.max(LU).max(UL).max(UU));
 }
 
 SAGERange SAGERange::operator/(const SAGERange& Other) const {
-  // FIXME: Not always valid.
-  return SAGERange(getLower()/Other.getUpper(),
-                   getUpper()/Other.getLower());
+  SAGEExpr LL = getLower()/Other.getLower(),
+           LU = getLower()/Other.getUpper(),
+           UL = getUpper()/Other.getLower(),
+           UU = getUpper()/Other.getUpper();
+  return SAGERange(LL.min(LU).min(UL).min(UU), LL.max(LU).max(UL).max(UU));
 }
 
 bool SAGERange::operator==(const SAGERange& Other) const {
