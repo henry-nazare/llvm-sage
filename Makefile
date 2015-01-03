@@ -3,11 +3,15 @@
 
 LEVEL ?= ../../..
 
+all: bin/sage
+	./bin/sage -sh -c "make -C Python LEVEL=$(LEVEL)/.."
+	./bin/sage -sh -c "make -f Makefile.llvm LEVEL=$(LEVEL)"
+
 SAGE_VERSION = 6.4.1
 SAGE_INSTALLED_VERSION = $(shell sage --version)
 
 ifneq ($(findstring Sage Version $(SAGE_VERSION),$(SAGE_INSTALLED_VERSION)),)
-  ifeq ($(shell sage -c "print is_package_installed('qepcad')"),True)
+  ifeq ($(shell sage -c "print is_package_installed('qepcad')"),False)
     $(error Please install the QEPCAD package for SAGE)
   endif
 
@@ -61,8 +65,4 @@ $(SAGE_PACKAGE):
 	wget $(SAGE_LINK)
 
 endif
-
-all: bin/sage
-	./sage/sage -sh -c "make -C Python LEVEL=$(LEVEL)/.."
-	./sage/sage -sh -c "make -f Makefile.llvm LEVEL=$(LEVEL)"
 
