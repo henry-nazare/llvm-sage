@@ -14,6 +14,8 @@ public:
   SAGEExpr(SAGEInterface &SI, PyObject *Obj);
   SAGEExpr(SAGEInterface &SI, const Value *V);
 
+  PyObject *getExpr() const;
+
   SAGEExpr operator+(const SAGEExpr& Other)  const;
   SAGEExpr operator+(long Other)             const;
   SAGEExpr operator-(const SAGEExpr& Other)  const;
@@ -69,9 +71,6 @@ public:
   int compare(const SAGEExpr& Other) const;
 
   friend raw_ostream& operator<<(raw_ostream& OS, const SAGEExpr& SE);
-
-protected:
-  PyObject *getExpr() const;
 
 private:
   SAGEInterface &SI_;
