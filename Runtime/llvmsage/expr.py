@@ -105,6 +105,9 @@ class Expr(object):
   def args(self):
     return map(Expr, self.expr.args)
 
+  def sympy(self):
+    return self.expr
+
   @staticmethod
   def reduce_conditional(expr):
       if isinstance(expr, And):
