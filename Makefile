@@ -3,8 +3,8 @@
 
 LEVEL ?= ../../..
 
-all: bin/sage
-	./bin/sage -sh -c "make -C Python LEVEL=$(LEVEL)/.."
+all: ./bin/sage
+	./bin/sage -sh -c "make -C Python LEVEL=../$(LEVEL)"
 	./bin/sage -sh -c "make -f Makefile.llvm LEVEL=$(LEVEL)"
 
 SAGE_VERSION = 6.4.1
@@ -58,8 +58,9 @@ sage: $(SAGE_PACKAGE)
     $(error Unknown operating system: $(OS))
   endif
 
-bin/sage: sage
-	ln -s $(shell pwd)/sage/sage bin/
+./bin/sage: sage
+	ln -s $(shell pwd)/sage/sage $@
+	touch $(shell pwd)/sage/sage
 
 $(SAGE_PACKAGE):
 	wget $(SAGE_LINK)
