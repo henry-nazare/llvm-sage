@@ -59,7 +59,7 @@ sage: $(SAGE_PACKAGE)
   endif
 
 bin/sage: sage
-	ln -s ./sage/sage bin/
+	ln -s $(shell pwd)/sage/sage bin/
 
 $(SAGE_PACKAGE):
 	wget $(SAGE_LINK)
