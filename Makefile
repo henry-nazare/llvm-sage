@@ -58,7 +58,7 @@ sage: $(SAGE_PACKAGE)
     $(error Unknown operating system: $(OS))
   endif
 
-bin/sage:
+bin/sage: sage
 	ln -s ./sage/sage bin/
 
 $(SAGE_PACKAGE):
