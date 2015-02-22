@@ -3,6 +3,8 @@
 
 #include "SAGEInterface.h"
 
+#include "llvm/IR/IRBuilder.h"
+
 using namespace llvm;
 
 class SAGEExpr {
@@ -14,7 +16,10 @@ public:
   SAGEExpr(SAGEInterface &SI, PyObject *Obj);
   SAGEExpr(SAGEInterface &SI, const Value *V);
 
-  PyObject *getExpr() const;
+  PyObject *getExpr()   const;
+
+  std::string getName() const;
+  long getInteger()     const;
 
   SAGEExpr operator+(const SAGEExpr& Other)  const;
   SAGEExpr operator+(long Other)             const;
@@ -45,6 +50,7 @@ public:
   SAGEExpr operator||(const SAGEExpr& Other) const;
   SAGEExpr operator!()                       const;
 
+
   SAGEExpr min(const SAGEExpr& Other, const SAGEExpr& Assumptions) const;
   SAGEExpr min(const SAGEExpr& Other)                              const;
   SAGEExpr min(long Other)                                         const;
@@ -54,6 +60,11 @@ public:
 
   SAGEExpr negation() const;
 
+  std::vector<SAGEExpr> args() const;
+
+  Value *toValue(IntegerType *Ty, IRBuilder<> &IRB,
+                 std::map<std::string, Value*> Value, Module *M) const;
+
   void operator=(SAGEExpr& Other);
   void operator=(const SAGEExpr& Other);
 
@@ -61,6 +72,22 @@ public:
   bool isNE(const SAGEExpr &Other) const;
 
   bool isConstant() const;
+  bool isInteger() const;
+  bool isRational() const;
+  bool isSymbol() const;
+
+  bool isMin() const;
+  bool isMax() const;
+
+  bool isAdd() const;
+  bool isMul() const;
+  bool isPow() const;
+
+  bool isInf() const;
+  bool isPlusInf() const;
+  bool isMinusInf() const;
+
+  int compare(PyObject *First, PyObject *Second);
 
   static SAGEExpr getNaN(SAGEInterface &SI);
   static SAGEExpr getPlusInf(SAGEInterface &SI);

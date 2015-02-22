@@ -32,6 +32,10 @@ PyObject *SAGEInterface::var(const char *Str) {
   return PI_->call(ObjVec_, FN_EXPR_INIT, {PyString_FromString(Str)});
 }
 
+std::string SAGEInterface::getName(PyObject *Expr) {
+  return PythonInterface::toString(PI_->callSelf("get_name", Expr, {}));
+}
+
 PyObject *SAGEInterface::add(PyObject *LHS, PyObject *RHS) {
   return PI_->callSelf("__add__", LHS, {RHS});
 }
@@ -110,6 +114,10 @@ PyObject *SAGEInterface::max(PyObject *First, PyObject *Second,
   return PI_->callSelf("max", First, {Second, Assumptions});
 }
 
+std::vector<PyObject*> SAGEInterface::args(PyObject *Expr) {
+  return PythonInterface::toVector(PI_->callSelf("args", Expr, {}));
+}
+
 PyObject *SAGEInterface::getNaN() {
   return PI_->call(ObjVec_, FN_NAN, {});
 }
@@ -130,6 +138,12 @@ PyObject *SAGEInterface::getFalse() {
   return PI_->call(ObjVec_, FN_FALSE, {});
 }
 
+long SAGEInterface::getInteger(PyObject *Expr) {
+  auto Obj = PI_->callSelf("get_integer", Expr, {});
+  errs() << "Obj: " << Obj << "\n";
+  return PyInt_AsLong(Obj);
+}
+
 bool SAGEInterface::isEQ(PyObject *First, PyObject *Second) {
   return PI_->callSelf("is_eq", First, {Second}) == Py_True;
 }
@@ -140,6 +154,50 @@ bool SAGEInterface::isNE(PyObject *First, PyObject *Second) {
 
 bool SAGEInterface::isConstant(PyObject *Expr) {
   return PI_->callSelf("is_constant", Expr, {}) == Py_True;
+}
+
+bool SAGEInterface::isInteger(PyObject *Expr) {
+  return PI_->callSelf("is_integer", Expr, {}) == Py_True;
+}
+
+bool SAGEInterface::isRational(PyObject *Expr) {
+  return PI_->callSelf("is_rational", Expr, {}) == Py_True;
+}
+
+bool SAGEInterface::isSymbol(PyObject *Expr) {
+  return PI_->callSelf("is_symbol", Expr, {}) == Py_True;
+}
+
+bool SAGEInterface::isMin(PyObject *Expr) {
+  return PI_->callSelf("is_min", Expr, {}) == Py_True;
+}
+
+bool SAGEInterface::isMax(PyObject *Expr) {
+  return PI_->callSelf("is_max", Expr, {}) == Py_True;
+}
+
+bool SAGEInterface::isAdd(PyObject *Expr) {
+  return PI_->callSelf("is_add", Expr, {}) == Py_True;
+}
+
+bool SAGEInterface::isMul(PyObject *Expr) {
+  return PI_->callSelf("is_mul", Expr, {}) == Py_True;
+}
+
+bool SAGEInterface::isPow(PyObject *Expr) {
+  return PI_->callSelf("is_pow", Expr, {}) == Py_True;
+}
+
+bool SAGEInterface::isInf(PyObject *Expr) {
+  return PI_->callSelf("is_inf", Expr, {}) == Py_True;
+}
+
+bool SAGEInterface::isPlusInf(PyObject *Expr) {
+  return PI_->callSelf("is_plus_inf", Expr, {}) == Py_True;
+}
+
+bool SAGEInterface::isMinusInf(PyObject *Expr) {
+  return PI_->callSelf("is_minus_inf", Expr, {}) == Py_True;
 }
 
 int SAGEInterface::compare(PyObject *First, PyObject *Second) {

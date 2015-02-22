@@ -1,6 +1,6 @@
 from cad import CAD
-from sympy import And, Or, Not, Min, Max, Lt, Le, Gt, Ge, Eq, Ne, \
-                  S, Integer, Symbol, Expr as SymPyExpr
+from sympy import And, Or, Not, Min, Max, Add, Mul, Pow, Lt, Le, Gt, Ge, \
+                  Eq, Ne, S, Integer, Rational, Symbol, Expr as SymPyExpr
 from sympy.logic.boolalg import BooleanFunction, BooleanAtom, \
                                 BooleanTrue, BooleanFalse
 from operator import neg
@@ -29,12 +29,28 @@ class Expr(object):
 
     Expr.is_eq       = lambda s, e: s.expr == e.expr
     Expr.is_ne       = lambda s, e: s.expr != e.expr
-    Expr.is_inf      = lambda s: s.expr == S.Infinity or s.expr == -S.Infinity
     Expr.is_empty    = lambda s: s.is_eq(Expr.empty)
+
+    Expr.is_inf       = lambda s: s.expr == S.Infinity or s.expr == -S.Infinity
+    Expr.is_plus_inf  = lambda s: s.expr == S.Infinity
+    Expr.is_minus_inf = lambda s: s.expr == -S.Infinity
+
     Expr.is_constant = lambda s: isinstance(s.expr, Integer)
+    Expr.is_integer  = lambda s: isinstance(s.expr, Integer)
+    Expr.is_rational = lambda s: isinstance(s.expr, Rational)
+    Expr.is_symbol   = lambda s: isinstance(s.expr, Symbol)
 
     Expr.is_min = lambda s: isinstance(s.expr, Min)
     Expr.is_max = lambda s: isinstance(s.expr, Max)
+    Expr.is_add = lambda s: isinstance(s.expr, Add)
+    Expr.is_mul = lambda s: isinstance(s.expr, Mul)
+    Expr.is_pow = lambda s: isinstance(s.expr, Pow)
+
+    Expr.get_integer = lambda s: s.expr.p
+    Expr.get_numer   = lambda s: s.expr.p
+    Expr.get_denom   = lambda s: s.expr.q
+
+    Expr.get_name = lambda s: s.expr.name
 
     Expr.compare = lambda s, e: s.compare(e)
 
@@ -74,7 +90,6 @@ class Expr(object):
   @staticmethod
   def get_false():
     return Expr(False)
-
 
   def __init__(self, val):
     if not Expr.initialized:

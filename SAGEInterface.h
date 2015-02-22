@@ -6,6 +6,8 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <vector>
+
 #undef NAN
 
 using namespace llvm;
@@ -47,6 +49,8 @@ public:
   PyObject *var(const long Val);
   PyObject *var(const char *Str);
 
+  std::string getName(PyObject *Expr);
+
   PyObject *add(PyObject *LHS, PyObject *RHS);
   PyObject *sub(PyObject *LHS, PyObject *RHS);
   PyObject *mul(PyObject *LHS, PyObject *RHS);
@@ -70,16 +74,34 @@ public:
   PyObject *max(PyObject *First, PyObject *Second);
   PyObject *max(PyObject *First, PyObject *Second, PyObject *Assumptions);
 
+  std::vector<PyObject*> args(PyObject *Expr);
+
   PyObject *getNaN();
   PyObject *getPlusInf();
   PyObject *getMinusInf();
   PyObject *getTrue();
   PyObject *getFalse();
 
+  long getInteger(PyObject *Expr);
+
   bool isEQ(PyObject *First, PyObject *Second);
   bool isNE(PyObject *First, PyObject *Second);
 
   bool isConstant(PyObject *Expr);
+  bool isInteger(PyObject *Expr);
+  bool isRational(PyObject *Expr);
+  bool isSymbol(PyObject *Expr);
+
+  bool isMin(PyObject *Expr);
+  bool isMax(PyObject *Expr);
+
+  bool isAdd(PyObject *Expr);
+  bool isMul(PyObject *Expr);
+  bool isPow(PyObject *Expr);
+
+  bool isInf(PyObject *Expr);
+  bool isPlusInf(PyObject *Expr);
+  bool isMinusInf(PyObject *Expr);
 
   int compare(PyObject *First, PyObject *Second);
 
