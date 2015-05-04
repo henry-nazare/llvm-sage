@@ -70,6 +70,14 @@ SAGEExpr SAGEExpr::operator-(long Other) const {
 }
 
 SAGEExpr SAGEExpr::operator*(const SAGEExpr& Other) const {
+  if (isMinusInf()) {
+    return Other.isPlusInf() ? getNaN(SI_) : *this;
+  } else if (isPlusInf()) {
+    return Other.isMinusInf() ? getNaN(SI_) : *this;
+  } else if (Other.isMinusInf() || Other.isPlusInf()) {
+    return Other;
+  }
+
   return SAGEExpr(SI_, SI_.mul(Expr_, Other.getExpr()));
 }
 

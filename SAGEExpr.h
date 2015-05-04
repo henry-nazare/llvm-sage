@@ -50,7 +50,6 @@ public:
   SAGEExpr operator||(const SAGEExpr& Other) const;
   SAGEExpr operator!()                       const;
 
-
   SAGEExpr min(const SAGEExpr& Other, const SAGEExpr& Assumptions) const;
   SAGEExpr min(const SAGEExpr& Other)                              const;
   SAGEExpr min(long Other)                                         const;
