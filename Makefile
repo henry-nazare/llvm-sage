@@ -10,6 +10,8 @@ all: ./bin/sage
 SAGE_VERSION = 6.4.1
 SAGE_INSTALLED_VERSION = $(shell sage --version)
 
+QEPCAD_PACKAGE_URL = http://cuda.dcc.ufmg.br/sage/qepcad-1.50.spkg
+
 ifneq ($(findstring Sage Version $(SAGE_VERSION),$(SAGE_INSTALLED_VERSION)),)
   ifeq ($(shell sage -c "print is_package_installed('qepcad')"),False)
     $(error Please install the QEPCAD package for SAGE)
@@ -33,12 +35,12 @@ else
 
     SAGE_OS = Linux-Ubuntu_8.04_$(SAGE_ARCH)
     SAGE_PACKAGE = sage-$(SAGE_VERSION)-$(SAGE_ARCH)-$(SAGE_OS).tar.gz
-    SAGE_LINK = http://linorg.usp.br/sage/linux/$(SAGE_BITS)bit/$(SAGE_PACKAGE)
+    SAGE_LINK = http://cuda.dcc.ufmg.br/sage/$(SAGE_PACKAGE)
 
 sage: $(SAGE_PACKAGE)
 	mkdir -p sage
 	tar -xvf $(SAGE_PACKAGE) -C sage --strip-components=1
-	yes | ./sage/sage -i qepcad
+	yes | ./sage/sage -i $(QEPCAD_PACKAGE_URL)
 
   else ifeq ($(OS), Darwin)
     ifneq ($(SAGE_ARCH), x86_64)
@@ -52,7 +54,7 @@ sage: $(SAGE_PACKAGE)
 sage: $(SAGE_PACKAGE)
 	hdiutil mount -mountpoint /Volumes/sage $(SAGE_PACKAGE)
 	cp -r /Volumes/sage/sage .
-	yes | ./sage/sage -i qepcad
+	yes | ./sage/sage -i $(QEPCAD_PACKAGE_URL)
 
   else
     $(error Unknown operating system: $(OS))
