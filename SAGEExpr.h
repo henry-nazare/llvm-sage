@@ -103,12 +103,14 @@ private:
   PyObject *Expr_;
 };
 
-template <>
-struct std::less<SAGEExpr> {
-  bool operator() (const SAGEExpr& LHS, const SAGEExpr& RHS) const {
-    return LHS.compare(RHS) < 0;
-  }
-};
+namespace std {
+  template <>
+  struct less<SAGEExpr> {
+    bool operator() (const SAGEExpr& LHS, const SAGEExpr& RHS) const {
+      return LHS.compare(RHS) < 0;
+    }
+  };
+}
 
 #endif
 
