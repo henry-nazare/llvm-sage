@@ -1,11 +1,5 @@
-##======- lib/*/*/Makefile ------------------------------*- Makefile -*-======##
+##======- Makefile.sage ---------------------------------*- Makefile -*-======##
 ##===----------------------------------------------------------------------===##
-
-LEVEL ?= ../../..
-
-all: ./bin/sage
-	./bin/sage -sh -c "make -C Python LEVEL=../$(LEVEL)"
-	./bin/sage -sh -c "make -f Makefile.llvm LEVEL=$(LEVEL)"
 
 SAGE_VERSION = 6.4.1
 SAGE_INSTALLED_VERSION = $(shell sage --version)
@@ -17,7 +11,7 @@ ifneq ($(findstring Sage Version $(SAGE_VERSION),$(SAGE_INSTALLED_VERSION)),)
     $(error Please install the QEPCAD package for SAGE)
   endif
 
-bin/sage:
+./bin/sage: sage
 	ln -s $(shell which sage) $@
 
 else
