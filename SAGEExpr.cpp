@@ -244,7 +244,8 @@ Value *SAGEExpr::toValue(IntegerType *Ty, IRBuilder<> &IRB,
 
     Value *PowFn = Intrinsic::getDeclaration(M, Intrinsic::pow,
                                                 ArrayRef<Type*>(DoubleTy));
-    Value *Pow = IRB.CreateCall2(PowFn, BaseDouble, ExpDouble);
+    Value *Pow =
+        IRB.CreateCall(PowFn, ArrayRef<Value*>({BaseDouble, ExpDouble}));
     Value *Cast = IRB.CreateFPToSI(Pow, Base->getType());
     return Cast;
   } else if (isAdd() || isMul()) {
