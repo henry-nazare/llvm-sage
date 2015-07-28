@@ -25,7 +25,11 @@ bool SAGEInterface::runOnModule(Module& M) {
 }
 
 PyObject *SAGEInterface::var(const long Val) {
-  return PI_->call(ObjVec_, FN_EXPR_INIT, {PyInt_FromLong(Val)});
+  return PI_->call(ObjVec_, FN_EXPR_INIT, {PyLong_FromLong(Val)});
+}
+
+PyObject *SAGEInterface::var(const unsigned long Val) {
+  return PI_->call(ObjVec_, FN_EXPR_INIT, {PyLong_FromUnsignedLong(Val)});
 }
 
 PyObject *SAGEInterface::var(const char *Str) {

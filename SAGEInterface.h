@@ -47,6 +47,7 @@ public:
   virtual bool runOnModule(Module&);
 
   PyObject *var(const long Val);
+  PyObject *var(const unsigned long Val);
   PyObject *var(const char *Str);
 
   std::string getName(PyObject *Expr);

@@ -26,12 +26,17 @@ SAGEExpr::SAGEExpr(SAGEInterface &SI)
 }
 
 SAGEExpr::SAGEExpr(SAGEInterface &SI, int Int)
+  : SI_(SI), Expr_(SI.var((long) Int)) {
+  assert(Expr_ != nullptr);
+}
+
+SAGEExpr::SAGEExpr(SAGEInterface &SI, uint64_t Int)
   : SI_(SI), Expr_(SI.var(Int)) {
   assert(Expr_ != nullptr);
 }
 
-SAGEExpr::SAGEExpr(SAGEInterface &SI, APInt Int)
-  : SI_(SI), Expr_(SI.var(Int.getSExtValue())) {
+SAGEExpr::SAGEExpr(SAGEInterface &SI, int64_t Int)
+  : SI_(SI), Expr_(SI.var(Int)) {
   assert(Expr_ != nullptr);
 }
 
@@ -244,7 +249,8 @@ Value *SAGEExpr::toValue(IntegerType *Ty, IRBuilder<> &IRB,
 
     Value *PowFn = Intrinsic::getDeclaration(M, Intrinsic::pow,
                                                 ArrayRef<Type*>(DoubleTy));
-    Value *Pow = IRB.CreateCall2(PowFn, BaseDouble, ExpDouble);
+    Value *Pow =
+        IRB.CreateCall(PowFn, ArrayRef<Value*>({BaseDouble, ExpDouble}));
     Value *Cast = IRB.CreateFPToSI(Pow, Base->getType());
     return Cast;
   } else if (isAdd() || isMul()) {

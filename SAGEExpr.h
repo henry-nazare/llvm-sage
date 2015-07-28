@@ -11,7 +11,8 @@ class SAGEExpr {
 public:
   SAGEExpr(SAGEInterface &SI);
   SAGEExpr(SAGEInterface &SI, int Int);
-  SAGEExpr(SAGEInterface &SI, APInt Int);
+  SAGEExpr(SAGEInterface &SI, uint64_t Int);
+  SAGEExpr(SAGEInterface &SI, int64_t Int);
   SAGEExpr(SAGEInterface &SI, const Twine &Name);
   SAGEExpr(SAGEInterface &SI, PyObject *Obj);
   SAGEExpr(SAGEInterface &SI, const Value *V);
