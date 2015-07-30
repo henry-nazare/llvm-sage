@@ -3,7 +3,103 @@ from sympy import And, Or, Not, Min, Max, Add, Mul, Pow, Lt, Le, Gt, Ge, \
                   Eq, Ne, S, Integer, Rational, Symbol, Expr as SymPyExpr
 from sympy.logic.boolalg import BooleanFunction, BooleanAtom, \
                                 BooleanTrue, BooleanFalse
-from operator import neg
+import operator
+
+def is_min_max(s):
+  return isinstance(s, Min) or isinstance(s, Max)
+
+def get_min_max(s, invert=False):
+  if isinstance(s, Min):
+    return (Min if not invert else Max)
+  if isinstance(s, Max):
+    return (Max if not invert else Min)
+  return None
+
+def apply_and_simplify(s, e, op, invert_on_negative=False):
+  s_cons = get_min_max(s)
+  s_cons_inv = get_min_max(s, invert=True)
+  e_cons = get_min_max(e)
+  e_cons_inv = get_min_max(e, invert=True)
+
+  def without_invert_on_negative():
+    # Min/Max op Min/Max
+    if s_cons != None and e_cons != None:
+      args = []
+      # Min op Min or Max op Max
+      if s_cons == e_cons:
+        for sa in s.args:
+          for ea in e.args:
+            args.append(op(sa, ea))
+      # Min op Max
+      else:
+        for sa in s.args:
+          for ea in e.args:
+            args.append(op(sa, -ea))
+      return s_cons(*args)
+
+    # Min/Max op Sym
+    if s_cons != None and isinstance(e, Symbol):
+      return s_cons(*map(lambda a: op(a, e), s.args))
+    # Sym op Min/Max
+    if e_cons != None and isinstance(s, Symbol):
+      return e_cons(*map(lambda a: op(s, a), e.args))
+
+    # Min/Max op Int
+    if s_cons != None and isinstance(e, Integer):
+      return s_cons(*map(lambda a: op(a, e), s.args))
+    # Int op Min/Max
+    if e_cons != None and isinstance(s, Integer):
+      return e_cons(*map(lambda a: op(s, a), e.args))
+
+    return op(s, e)
+
+  def with_invert_on_negative():
+    # Min/Max op Min/Max
+    if s_cons != None and e_cons != None:
+      args = []
+      # Min op Min or Max op Max
+      if s_cons == e_cons:
+        for sa in s.args:
+          for ea in e.args:
+            args.append(op(sa, ea))
+        for sa in s.args:
+          for ea in e.args:
+            args.append(op(-sa, ea))
+      # Min op Max
+      else:
+        for sa in s.args:
+          for ea in e.args:
+            args.append(op(sa, -ea))
+        for sa in s.args:
+          for ea in e.args:
+            args.append(op(-sa, -ea))
+      return s_cons(*args)
+
+    # Min/Max op Sym
+    if s_cons != None and isinstance(e, Symbol):
+      args = map(lambda a: op(a, e), s.args) \
+          + map(lambda a: op(a, -e), s.args)
+      return s_cons(*args)
+    # Sym op Min/Max
+    if e_cons != None and isinstance(s, Symbol):
+      args = map(lambda a: op(s, a), e.args) \
+          + map(lambda a: op(-s, a), e.args)
+      return e_cons(*args)
+
+    # Min/Max op Int
+    if s_cons != None and isinstance(e, Integer):
+      cons = s_cons_inv if e < 0 else s_cons
+      return cons(*map(lambda a: op(a, e), s.args))
+    # Int op Min/Max
+    if e_cons != None and isinstance(s, Integer):
+      cons = e_cons_inv if s < 0 else e_cons
+      return cons(*map(lambda a: op(s, a), e.args))
+
+    return op(s, e)
+
+  if invert_on_negative:
+    return with_invert_on_negative()
+  return without_invert_on_negative()
 
 class Expr(object):
   initialized = False
@@ -11,8 +107,16 @@ class Expr(object):
   @staticmethod
   def init():
     # FIXME: Are (+-)oo correctly handled?
-    Expr.__mul__ = lambda s, e: Expr(s.expr *  e.expr)
-    Expr.__div__ = lambda s, e: Expr(s.expr /  e.expr)
+    Expr.__add__ = \
+        lambda s, e: Expr(apply_and_simplify(s.expr, e.expr, operator.add))
+    Expr.__sub__ = \
+        lambda s, e: Expr(apply_and_simplify(s.expr, e.expr, operator.sub))
+    Expr.__mul__ = \
+        lambda s, e: Expr(apply_and_simplify(s.expr, e.expr, operator.mul, \
+            invert_on_negative=True))
+    Expr.__div__ = \
+        lambda s, e: Expr(apply_and_simplify(s.expr, e.expr, operator.div, \
+            invert_on_negative=True))
     Expr.__pow__ = lambda s, e: Expr(s.expr ** e.expr)
     Expr.__neg__ = lambda s: Expr(-s.expr)
 
@@ -56,20 +160,6 @@ class Expr(object):
 
     # Empty. When min/max is invalid.
     Expr.empty = Expr("EMPTY")
-
-  def __add__(self, other):
-    if self.is_inf() and not other.is_inf():
-      return self
-    if not self.is_inf() and other.is_inf():
-        return other
-    return Expr(self.expr + other.expr)
-
-  def __sub__(self, other):
-    if self.is_inf() and not other.is_inf():
-      return self
-    if not self.is_inf() and other.is_inf():
-        return -other
-    return Expr(self.expr - other.expr)
 
   @staticmethod
   def get_nan():
@@ -149,7 +239,7 @@ class Expr(object):
     if isinstance(expr, ty):
       return list(expr.args)
     elif isinstance(expr, neg_ty):
-      return map(neg, list(expr.args))
+      return map(operator.neg, list(expr.args))
     return [expr]
 
   def reduce_min(self, args, assumptions):
@@ -218,7 +308,7 @@ class Expr(object):
   def max(self, other, assumptions=None):
     res = (-self).min(-other, assumptions)
     if isinstance(res.expr, Min):
-      res_args = map(neg, res.expr.args)
+      res_args = map(operator.neg, res.expr.args)
       return Expr(Max(*res_args))
     return res if res.is_eq(Expr.empty) else -res
 
