@@ -1,0 +1,3 @@
+779a780,781
+>         # Hacky solution for adding timing out QEPCAD.
+>         qex._expect.timeout = timeout
