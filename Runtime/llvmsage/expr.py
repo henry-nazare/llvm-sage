@@ -235,11 +235,9 @@ class Expr(object):
       return expr
 
   @staticmethod
-  def minmax_args(expr, ty, neg_ty):
+  def minmax_args(expr, ty):
     if isinstance(expr, ty):
       return list(expr.args)
-    elif isinstance(expr, neg_ty):
-      return map(operator.neg, list(expr.args))
     return [expr]
 
   def reduce_min(self, args, assumptions):
@@ -275,8 +273,8 @@ class Expr(object):
 
   def min(self, other, assumptions=None):
     try:
-      args = Expr.minmax_args(self.expr, Min, Max) + \
-             Expr.minmax_args(other.expr, Min, Max)
+      args = Expr.minmax_args(self.expr, Min) + \
+             Expr.minmax_args(other.expr, Min)
 
       if isinstance(other.expr, Max):
         if len(other.expr.args) == 2 \
