@@ -271,12 +271,45 @@ class Expr(object):
     res_args = [args[i] for i in xrange(len(args)) if not del_args[i]]
     return res_args
 
-  def min(self, other, assumptions=None):
-    try:
-      args = Expr.minmax_args(self.expr, Min) + \
-             Expr.minmax_args(other.expr, Min)
+  def reduce_max(self, args, assumptions):
+    m = Max(*args)
 
-      if isinstance(other.expr, Max):
+    if not isinstance(m, Max):
+      # Expression was simplified.
+      return [m]
+
+    del_args = [False] * len(args)
+    for i in xrange(len(args)):
+      if del_args[i]: continue
+      for j in xrange(i + 1, len(args)):
+         if del_args[j]: continue
+
+         rest = CAD.implies(assumptions, args[i] >= args[j])
+         resf = CAD.implies(assumptions, args[i] <= args[j])
+         resi = CAD.implies(assumptions, args[i] <  args[j])
+
+         if not (CAD.is_unknown(rest) or CAD.is_unknown(resi)) \
+             and CAD.is_true(rest) and CAD.is_true(resi):
+           del_args[i] = True
+           del_args[j] = True
+         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
+             and (CAD.is_true(rest) or CAD.is_false(resf)):
+           del_args[j] = True
+         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
+             and (CAD.is_false(rest) or CAD.is_true(resf)):
+           del_args[i] = True
+
+    res_args = [args[i] for i in xrange(len(args)) if not del_args[i]]
+    return res_args
+
+  def min_or_max(self, other, op, assumptions):
+    try:
+      assert op == Min or op == Max
+      args = Expr.minmax_args(self.expr, op) + \
+             Expr.minmax_args(other.expr, op)
+
+      inv_op = Min if op == Max else Max
+      if isinstance(other.expr, inv_op):
         if len(other.expr.args) == 2 \
            and (other.expr.args[0] == self.expr \
                 or other.expr.args[1] == self.expr):
@@ -294,22 +327,25 @@ class Expr(object):
 
       # TODO: handle min/max parameters.
       if any(map(lambda e: e.has(Min) or e.has(Max), args)):
-        return Expr(Min(self.expr, other.expr))
+        return Expr(op(self.expr, other.expr))
 
-      res_args = \
-        self.reduce_min(args, assumptions.expr if assumptions else False)
+      if op == Min:
+        res_args = \
+          self.reduce_min(args, assumptions.expr if assumptions else False)
+      else:
+        res_args = \
+          self.reduce_max(args, assumptions.expr if assumptions else False)
       if not res_args:
         return Expr.empty
-      return Expr(Min(*res_args))
+      return Expr(op(*res_args))
     except BaseException as b:
-      print "Exception triggered: min", self, other
+      print "Exception triggered: min_or_max", self, other
       print b
       raise
 
+  def min(self, other, assumptions=None):
+    return self.min_or_max(other, Min, assumptions)
+
   def max(self, other, assumptions=None):
-    res = (-self).min(-other, assumptions)
-    if isinstance(res.expr, Min):
-      res_args = map(operator.neg, res.expr.args)
-      return Expr(Max(*res_args))
-    return res if res.is_eq(Expr.empty) else -res
+    return self.min_or_max(other, Max, assumptions)
 
