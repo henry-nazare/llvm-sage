@@ -259,12 +259,15 @@ class Expr(object):
          resf = CAD.implies(assumptions, args[i] >= args[j])
          resi = CAD.implies(assumptions, args[i] >  args[j])
 
-         if CAD.is_true(rest) and CAD.is_true(resi):
+         if not (CAD.is_unknown(rest) or CAD.is_unknown(resi)) \
+             and CAD.is_true(rest) and CAD.is_true(resi):
            del_args[i] = True
            del_args[j] = True
-         elif CAD.is_true(rest) or CAD.is_false(resf):
+         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
+             and (CAD.is_true(rest) or CAD.is_false(resf)):
            del_args[j] = True
-         elif CAD.is_false(rest) or CAD.is_true(resf):
+         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
+             and (CAD.is_false(rest) or CAD.is_true(resf)):
            del_args[i] = True
 
     res_args = [args[i] for i in xrange(len(args)) if not del_args[i]]
