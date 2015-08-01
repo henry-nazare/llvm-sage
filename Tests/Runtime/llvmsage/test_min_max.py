@@ -78,12 +78,13 @@ class TestMinMax(unittest.TestCase):
 
   def test_simlpify_min_max_mul_expr_syms_with_assumptions(self):
     self.verify_expr( \
-        a.min(b).min(a * n, assumptions=(n > one)), Min, [a, b])
+        a.min(b).min(a * n, assumptions=((a > zero) & (n > one))), Min, [a, b])
     # TODO: the following test times out with QEPCAD (> 1 minute).
     self.verify_expr( \
-        a.min(b).min(a/n, assumptions=(n > one)), Min, [b, a/n])
+        a.min(b).min(a/n, assumptions=((a > zero) & (n > one))), Min, [b, a/n])
     self.verify_expr( \
-        a.max(b).max(a * n, assumptions=(n > one)), Max, [b, a * n])
+        a.max(b).max(a * n, assumptions=((a > zero) & (n > one))), Max,
+        [b, a * n])
     self.verify_expr( \
-        a.max(b).max(a/n, assumptions=(n > one)), Max, [a, b])
+        a.max(b).max(a/n, assumptions=((a > zero) & (n > one))), Max, [a, b])
 
