@@ -310,10 +310,10 @@ class Expr(object):
 
       inv_op = Min if op == Max else Max
       if isinstance(other.expr, inv_op):
-        if len(other.expr.args) == 2 \
-           and (other.expr.args[0] == self.expr \
-                or other.expr.args[1] == self.expr):
+        if self.expr in other.expr.args:
           return self
+      if isinstance(self.expr, inv_op) and other.expr in self.expr.args:
+        return other
 
       if (self.expr == S.Infinity):
         return other

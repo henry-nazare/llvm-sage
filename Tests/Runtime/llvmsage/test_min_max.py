@@ -11,6 +11,9 @@ class TestMinMax(unittest.TestCase):
     self.assertIsInstance(s.expr, instance)
     self.assertItemsEqual(s.expr.args, map(lambda a: a.expr, args))
 
+  def verify_simple_expr(self, s, val):
+    self.assertEqual(s, val)
+
   def test_simple_min_max(self):
     self.verify_expr(a.min(b), Min, [a, b])
     self.verify_expr(a.max(b), Max, [a, b])
@@ -28,9 +31,10 @@ class TestMinMax(unittest.TestCase):
     self.verify_expr(a.max(b).max(a), Max, [a, b])
 
   def test_simplify_mixed_min_max(self):
-    # TODO: can be simplified to Min(a, b) instead of Max(a, Min(a, b)).
-    self.verify_expr(a.min(b).max(a), Max, [a, b])
-    self.verify_expr(a.max(b).min(a), Min, [a, b])
+    self.verify_simple_expr(a.min(b).max(a), a)
+    self.verify_simple_expr(a.max(b).min(a), a)
+    self.verify_simple_expr(a.min(b).min(c).max(a), a)
+    self.verify_simple_expr(a.max(b).max(c).min(a), a)
 
   def test_simlpify_min_max_add_expr_constants(self):
     self.verify_expr(a.min(b).min(a + one), Min, [a, b])
