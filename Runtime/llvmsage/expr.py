@@ -247,6 +247,9 @@ class Expr(object):
       # Expression was simplified.
       return [m]
 
+    # Use the reduced argument list.
+    args = m.args
+
     del_args = [False] * len(args)
     for i in xrange(len(args)):
       if del_args[i]: continue
@@ -277,6 +280,9 @@ class Expr(object):
     if not isinstance(m, Max):
       # Expression was simplified.
       return [m]
+
+    # Use the reduced argument list.
+    args = m.args
 
     del_args = [False] * len(args)
     for i in xrange(len(args)):
