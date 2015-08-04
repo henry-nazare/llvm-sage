@@ -104,6 +104,10 @@ def apply_and_simplify(s, e, op, invert_on_negative=False):
 class Expr(object):
   initialized = False
 
+  # TODO: these caches should probably be fixed-sized LRU structures.
+  min_cache = {}
+  max_cache = {}
+
   @staticmethod
   def init():
     # FIXME: Are (+-)oo correctly handled?
@@ -256,9 +260,14 @@ class Expr(object):
       for j in xrange(i + 1, len(args)):
          if del_args[j]: continue
 
-         rest = CAD.implies(assumptions, args[i] <= args[j])
-         resf = CAD.implies(assumptions, args[i] >= args[j])
-         resi = CAD.implies(assumptions, args[i] >  args[j])
+         key = (args[i], args[j])
+         if Expr.min_cache.has_key(key):
+           rest, resf, resi = Expr.min_cache[key]
+         else:
+           rest = CAD.implies(assumptions, args[i] <= args[j])
+           resf = CAD.implies(assumptions, args[i] >= args[j])
+           resi = CAD.implies(assumptions, args[i] >  args[j])
+           Expr.min_cache[key] = (rest, resf, resi)
 
          if not (CAD.is_unknown(rest) or CAD.is_unknown(resi)) \
              and CAD.is_true(rest) and CAD.is_true(resi):
@@ -290,9 +299,14 @@ class Expr(object):
       for j in xrange(i + 1, len(args)):
          if del_args[j]: continue
 
-         rest = CAD.implies(assumptions, args[i] >= args[j])
-         resf = CAD.implies(assumptions, args[i] <= args[j])
-         resi = CAD.implies(assumptions, args[i] <  args[j])
+         key = (args[i], args[j])
+         if Expr.max_cache.has_key(key):
+           rest, resf, resi = Expr.max_cache[key]
+         else:
+           rest = CAD.implies(assumptions, args[i] >= args[j])
+           resf = CAD.implies(assumptions, args[i] <= args[j])
+           resi = CAD.implies(assumptions, args[i] <  args[j])
+           Expr.max_cache[key] = (rest, resf, resi)
 
          if not (CAD.is_unknown(rest) or CAD.is_unknown(resi)) \
              and CAD.is_true(rest) and CAD.is_true(resi):
