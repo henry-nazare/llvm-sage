@@ -35,6 +35,8 @@ sage: $(SAGE_PACKAGE)
 	lrzuntar $(SAGE_PACKAGE)
 	mv sage-$(SAGE_VERSION)-$(SAGE_ARCH)-Linux sage
 	yes | ./sage/sage -i $(QEPCAD_PACKAGE_URL)
+	patch sage/local/lib/python2.7/site-packages/sage/interfaces/qepcad.py \
+	    qepcad_py.diff
 
   else ifeq ($(OS), Darwin)
     ifneq ($(SAGE_ARCH), x86_64)
@@ -51,6 +53,8 @@ sage: $(SAGE_PACKAGE)
 	hdiutil mount -mountpoint /Volumes/sage $(SAGE_PACKAGE)
 	cp -r /Volumes/sage/sage .
 	yes | ./sage/sage -i $(QEPCAD_PACKAGE_URL)
+	patch sage/local/lib/python2.7/site-packages/sage/interfaces/qepcad.py \
+	    qepcad_py.diff
 
   else
     $(error Unknown operating system: $(OS))

@@ -34,6 +34,9 @@ clean:
 	./bin/sage -sh -c "\\\$(MAKE) -C Python \\\$@"
 	./bin/sage -sh -c "\\\$(MAKE) -f Makefile.llvm \\\$@"
 
+test:
+	./bin/sage -sh -c "PYTHONPATH=\\"\\\$\\\$PYTHONPATH:\\\$(PWD)/Runtime\\" python Tests/Runtime/llvmsage/test.py"
+
 include Makefile.sage
 
 EOF
