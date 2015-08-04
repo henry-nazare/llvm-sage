@@ -1,13 +1,7 @@
-##======- lib/*/*/Makefile ------------------------------*- Makefile -*-======##
+##======- Makefile.sage ---------------------------------*- Makefile -*-======##
 ##===----------------------------------------------------------------------===##
 
-LEVEL ?= ../../..
-
-all: ./bin/sage
-	./bin/sage -sh -c "make -C Python LEVEL=../$(LEVEL)"
-	./bin/sage -sh -c "make -f Makefile.llvm LEVEL=$(LEVEL)"
-
-SAGE_VERSION = 6.4.1
+SAGE_VERSION = 6.8
 SAGE_INSTALLED_VERSION = $(shell sage --version)
 
 QEPCAD_PACKAGE_URL = http://cuda.dcc.ufmg.br/sage/qepcad-1.50.spkg
@@ -17,7 +11,7 @@ ifneq ($(findstring Sage Version $(SAGE_VERSION),$(SAGE_INSTALLED_VERSION)),)
     $(error Please install the QEPCAD package for SAGE)
   endif
 
-bin/sage:
+./bin/sage: sage
 	ln -s $(shell which sage) $@
 
 else
@@ -33,20 +27,24 @@ else
       $(error Unknown architecture: $(SAGE_ARCH))
     endif
 
-    SAGE_OS = Linux-Ubuntu_8.04_$(SAGE_ARCH)
-    SAGE_PACKAGE = sage-$(SAGE_VERSION)-$(SAGE_ARCH)-$(SAGE_OS).tar.gz
-    SAGE_LINK = http://cuda.dcc.ufmg.br/sage/$(SAGE_PACKAGE)
+    SAGE_OS = Ubuntu_12.04_LTS
+    SAGE_PACKAGE = $(SAGE_OS)_sage-$(SAGE_VERSION)-$(SAGE_ARCH)-Linux.tar.lrz
+    SAGE_LINK = http://sagemath.c3sl.ufpr.br/linux/64bit/$(SAGE_PACKAGE)
 
 sage: $(SAGE_PACKAGE)
-	mkdir -p sage
-	tar -xvf $(SAGE_PACKAGE) -C sage --strip-components=1
+	lrzuntar $(SAGE_PACKAGE)
+	mv sage-$(SAGE_VERSION)-$(SAGE_ARCH)-Linux sage
 	yes | ./sage/sage -i $(QEPCAD_PACKAGE_URL)
+	patch sage/local/lib/python2.7/site-packages/sage/interfaces/qepcad.py \
+	    qepcad_py.diff
 
   else ifeq ($(OS), Darwin)
     ifneq ($(SAGE_ARCH), x86_64)
       $(error SAGE does not provide 32-bit packages for OSX)
     endif
 
+    # Override the SAGE version while OS X packages aren't available for 6.8.
+    SAGE_VERSION = 6.7
     SAGE_OS = Darwin-OSX_10.7_$(SAGE_ARCH)
     SAGE_PACKAGE = sage-$(SAGE_VERSION)-$(SAGE_ARCH)-$(SAGE_OS).dmg
     SAGE_LINK = http://linorg.usp.br/sage/osx/intel/$(SAGE_PACKAGE)
@@ -55,6 +53,8 @@ sage: $(SAGE_PACKAGE)
 	hdiutil mount -mountpoint /Volumes/sage $(SAGE_PACKAGE)
 	cp -r /Volumes/sage/sage .
 	yes | ./sage/sage -i $(QEPCAD_PACKAGE_URL)
+	patch sage/local/lib/python2.7/site-packages/sage/interfaces/qepcad.py \
+	    qepcad_py.diff
 
   else
     $(error Unknown operating system: $(OS))

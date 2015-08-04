@@ -2,6 +2,14 @@ from sage.all import qepcad, qepcad_formula
 from operator import lt, le, gt, ge, eq, ne
 from sympy import And, Or, Not, StrictLessThan, LessThan, \
                   StrictGreaterThan, GreaterThan, Unequality, Equality
+from pexpect import ExceptionPexpect
+
+def run_qepcad(formula):
+  try:
+    # Time out QEPCAD after 2 seconds.
+    return qepcad(formula, timeout=2)
+  except ExceptionPexpect:
+    return 'UNKNOWN'
 
 class CAD:
   qf = qepcad_formula
@@ -60,7 +68,7 @@ class CAD:
   @staticmethod
   def always(formula):
     f = CAD.qf.formula(CAD.to_sage(formula))
-    return qepcad(f)
+    return run_qepcad(f)
 
   @staticmethod
   def implies(assumptions, formula):
@@ -74,7 +82,7 @@ class CAD:
     assumptions = CAD.complete_assumptions(assumptions)
     assumptions_str = CAD.to_qepcad(assumptions)
     implication = CAD.qf.implies(assumptions_str, formula)
-    return qepcad(implication)
+    return run_qepcad(implication)
 
   @staticmethod
   def is_true(result):
@@ -83,4 +91,8 @@ class CAD:
   @staticmethod
   def is_false(result):
     return result == 'FALSE'
+
+  @staticmethod
+  def is_unknown(result):
+    return result == 'UNKNOWN'
 

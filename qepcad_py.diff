@@ -1,0 +1,7 @@
+700c700
+<                  memcells=None, server=None):
+---
+>                  memcells=None, server=None, timeout=None):
+779a780,781
+>         # Hacky solution for adding timing out QEPCAD.
+>         qex._expect.timeout = timeout

@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-CMD="PYTHONPATH=$PYTHONPATH:$DIR/../Runtime opt $@"
-SAGE="$DIR/sage"
-[ ! -f "$SAGE" ] && make -C $DIR/.. sage
-"$SAGE" -sh -c "$CMD"
-
