@@ -260,7 +260,7 @@ class Expr(object):
       for j in xrange(i + 1, len(args)):
          if del_args[j]: continue
 
-         key = (args[i], args[j])
+         key = (args[i], args[j], assumptions)
          if Expr.min_cache.has_key(key):
            rest, resf, resi = Expr.min_cache[key]
          else:
@@ -299,7 +299,7 @@ class Expr(object):
       for j in xrange(i + 1, len(args)):
          if del_args[j]: continue
 
-         key = (args[i], args[j])
+         key = (args[i], args[j], assumptions)
          if Expr.max_cache.has_key(key):
            rest, resf, resi = Expr.max_cache[key]
          else:
@@ -368,4 +368,7 @@ class Expr(object):
 
   def max(self, other, assumptions=None):
     return self.min_or_max(other, Max, assumptions)
+
+  def size(self):
+    return len(self.expr.args)
 
