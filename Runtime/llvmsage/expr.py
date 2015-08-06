@@ -20,6 +20,9 @@ def apply_and_simplify(s, e, op, invert_on_negative=False):
   s_cons_inv = get_min_max(s, invert=True)
   e_cons = get_min_max(e)
   e_cons_inv = get_min_max(e, invert=True)
+  do_apply = \
+      lambda sa, ea: \
+          apply_and_simplify(sa, ea, op, invert_on_negative=invert_on_negative)
 
   def without_invert_on_negative():
     # Min/Max op Min/Max
@@ -29,27 +32,27 @@ def apply_and_simplify(s, e, op, invert_on_negative=False):
       if s_cons == e_cons:
         for sa in s.args:
           for ea in e.args:
-            args.append(op(sa, ea))
+            args.append(do_apply(sa, ea))
       # Min op Max
       else:
         for sa in s.args:
           for ea in e.args:
-            args.append(op(sa, -ea))
+            args.append(do_apply(sa, -ea))
       return s_cons(*args)
 
     # Min/Max op Sym
     if s_cons != None and isinstance(e, Symbol):
-      return s_cons(*map(lambda a: op(a, e), s.args))
+      return s_cons(*map(lambda a: do_apply(a, e), s.args))
     # Sym op Min/Max
     if e_cons != None and isinstance(s, Symbol):
-      return e_cons(*map(lambda a: op(s, a), e.args))
+      return e_cons(*map(lambda a: do_apply(s, a), e.args))
 
     # Min/Max op Int
     if s_cons != None and isinstance(e, Integer):
-      return s_cons(*map(lambda a: op(a, e), s.args))
+      return s_cons(*map(lambda a: do_apply(a, e), s.args))
     # Int op Min/Max
     if e_cons != None and isinstance(s, Integer):
-      return e_cons(*map(lambda a: op(s, a), e.args))
+      return e_cons(*map(lambda a: do_apply(s, a), e.args))
 
     return op(s, e)
 
@@ -61,39 +64,39 @@ def apply_and_simplify(s, e, op, invert_on_negative=False):
       if s_cons == e_cons:
         for sa in s.args:
           for ea in e.args:
-            args.append(op(sa, ea))
+            args.append(do_apply(sa, ea))
         for sa in s.args:
           for ea in e.args:
-            args.append(op(-sa, ea))
+            args.append(do_apply(-sa, ea))
       # Min op Max
       else:
         for sa in s.args:
           for ea in e.args:
-            args.append(op(sa, -ea))
+            args.append(do_apply(sa, -ea))
         for sa in s.args:
           for ea in e.args:
-            args.append(op(-sa, -ea))
+            args.append(do_apply(-sa, -ea))
       return s_cons(*args)
 
     # Min/Max op Sym
     if s_cons != None and isinstance(e, Symbol):
-      args = map(lambda a: op(a, e), s.args) \
-          + map(lambda a: op(a, -e), s.args)
+      args = map(lambda a: do_apply(a, e), s.args) \
+          + map(lambda a: do_apply(a, -e), s.args)
       return s_cons(*args)
     # Sym op Min/Max
     if e_cons != None and isinstance(s, Symbol):
-      args = map(lambda a: op(s, a), e.args) \
-          + map(lambda a: op(-s, a), e.args)
+      args = map(lambda a: do_apply(s, a), e.args) \
+          + map(lambda a: do_apply(-s, a), e.args)
       return e_cons(*args)
 
     # Min/Max op Int
     if s_cons != None and isinstance(e, Integer):
-      cons = s_cons_inv if e < 0 else s_cons
-      return cons(*map(lambda a: op(a, e), s.args))
+      sign, cons = (-1, s_cons_inv) if e < 0 else (1, s_cons)
+      return sign * cons(*map(lambda a: do_apply(a, e), s.args))
     # Int op Min/Max
     if e_cons != None and isinstance(s, Integer):
-      cons = e_cons_inv if s < 0 else e_cons
-      return cons(*map(lambda a: op(s, a), e.args))
+      sign, cons = (-1, e_cons_inv) if s < 0 else (1, e_cons)
+      return sign * cons(*map(lambda a: do_apply(s, a), e.args))
 
     return op(s, e)
 

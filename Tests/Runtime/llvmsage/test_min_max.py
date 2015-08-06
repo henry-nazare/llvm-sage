@@ -115,3 +115,13 @@ class TestMinMax(unittest.TestCase):
     self.verify_expr( \
         a.max(b).max(a/n, assumptions=((a > zero) & (n > one))), Max, [a, b])
 
+  def test_op_on_contained_min_max(self):
+    self.verify_expr( \
+        a.min(b).max(c) + one, Max, [c + one, (a + one).min(b + one)])
+    self.verify_expr( \
+        a.min(b).max(c) * two, Max, [c * two, (a * two).min(b * two)])
+    self.verify_simple_expr( \
+        a.min(b).max(c) * (-two), -min(-two * c, -(-two * a).max(-two * b)))
+    self.verify_simple_expr( \
+        a.max(b).min(c) * (-two), -max(-two * c, -(-two * a).min(-two * b)))
+
