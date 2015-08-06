@@ -101,6 +101,16 @@ def apply_and_simplify(s, e, op, invert_on_negative=False):
     return with_invert_on_negative()
   return without_invert_on_negative()
 
+def is_le(s, e, assumptions):
+  if Min(s, e) == s:
+    return s
+  return CAD.is_true(CAD.implies(assumptions, s <= e))
+
+def is_ge(s, e, assumptions):
+  if Max(s, e) == s:
+    return s
+  return CAD.is_true(CAD.implies(assumptions, s >= e))
+
 class Expr(object):
   initialized = False
 
@@ -323,17 +333,27 @@ class Expr(object):
     return res_args
 
   def min_or_max(self, other, op, assumptions):
+    assumptions = assumptions.expr if assumptions else False
     try:
       assert op == Min or op == Max
       args = Expr.minmax_args(self.expr, op) + \
              Expr.minmax_args(other.expr, op)
 
+      # Max(a, Min(b, c)) or Min(a, Max(b, c))
       inv_op = Min if op == Max else Max
+      cmp_op = is_le if op == Max else is_ge
       if isinstance(other.expr, inv_op):
         if self.expr in other.expr.args:
           return self
-      if isinstance(self.expr, inv_op) and other.expr in self.expr.args:
-        return other
+        for a in other.expr.args:
+          if cmp_op(a, self.expr, assumptions):
+            return self
+      if isinstance(self.expr, inv_op):
+        if other.expr in self.expr.args:
+          return other
+        for a in self.expr.args:
+          if cmp_op(a, other.expr, assumptions):
+            return other
 
       if (self.expr == S.Infinity):
         return other
@@ -350,11 +370,9 @@ class Expr(object):
         return Expr(op(self.expr, other.expr))
 
       if op == Min:
-        res_args = \
-          self.reduce_min(args, assumptions.expr if assumptions else False)
+        res_args = self.reduce_min(args, assumptions)
       else:
-        res_args = \
-          self.reduce_max(args, assumptions.expr if assumptions else False)
+        res_args = self.reduce_max(args, assumptions)
       if not res_args:
         return Expr.empty
       return Expr(op(*res_args))

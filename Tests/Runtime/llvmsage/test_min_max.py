@@ -36,7 +36,6 @@ class TestMinMax(unittest.TestCase):
     self.verify_simple_expr(a.min(b).min(c).max(a), a)
     self.verify_simple_expr(a.max(b).max(c).min(a), a)
 
-  @unittest.expectedFailure
   def test_simplify_mixed_min_max2(self):
     # Max(a, Min(b, c))
     # Cond      => Min(b, c) | Max(a, Min(b, c))
