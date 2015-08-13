@@ -240,11 +240,14 @@ Value *SAGEExpr::toValue(IntegerType *Ty, IRBuilder<> &IRB,
     return Constant::getIntegerValue(Ty, Int);
   }
 
-  // TODO: Add support for Rational.
   // Integers, symbols.
   if (isInteger()) {
     APInt Int(Ty->getBitWidth(), getInteger(), true);
     return Constant::getIntegerValue(Ty, Int);
+  } else if (isRational()) {
+    Value *Numer = getNumer().toValue(Ty, IRB, Values, M);
+    Value *Denom = getDenom().toValue(Ty, IRB, Values, M);
+    return IRB.CreateSDiv(Numer, Denom);
   } else if (isSymbol()) {
     Value *V = Values[getName()];
     assert(V && "Value not contained in map");
