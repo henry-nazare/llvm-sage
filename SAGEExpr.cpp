@@ -58,6 +58,10 @@ long SAGEExpr::getInteger() const {
   return SI_.getInteger(Expr_);
 }
 
+long SAGEExpr::getSize() const {
+  return SI_.getSize(Expr_);
+}
+
 SAGEExpr SAGEExpr::getNumer() const {
   return SAGEExpr(SI_, SI_.getNumer(Expr_));
 }

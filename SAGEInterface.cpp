@@ -144,8 +144,12 @@ PyObject *SAGEInterface::getFalse() {
 
 long SAGEInterface::getInteger(PyObject *Expr) {
   auto Obj = PI_->callSelf("get_integer", Expr, {});
-  errs() << "Obj: " << Obj << "\n";
   return PyInt_AsLong(Obj);
+}
+
+long SAGEInterface::getSize(PyObject *Expr) {
+   auto Obj = PI_->callSelf("size", Expr, {});
+   return PyInt_AsLong(Obj);
 }
 
 PyObject *SAGEInterface::getNumer(PyObject *Expr) {

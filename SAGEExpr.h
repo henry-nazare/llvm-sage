@@ -21,6 +21,7 @@ public:
 
   std::string getName() const;
   long getInteger()     const;
+  long getSize()        const;
 
   SAGEExpr getNumer() const;
   SAGEExpr getDenom() const;

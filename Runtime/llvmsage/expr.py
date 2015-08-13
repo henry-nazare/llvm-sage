@@ -393,5 +393,7 @@ class Expr(object):
     return self.min_or_max(other, Max, assumptions)
 
   def size(self):
-    return len(self.expr.args)
+    if isinstance(self.expr, Min) or isinstance(self.expr, Max):
+      return len(self.expr.args)
+    return sum(map(lambda a: Expr(a).size(), self.expr.args))
 

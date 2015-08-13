@@ -84,6 +84,7 @@ public:
   PyObject *getFalse();
 
   long getInteger(PyObject *Expr);
+  long getSize(PyObject *Expr);
 
   PyObject *getNumer(PyObject *Expr);
   PyObject *getDenom(PyObject *Expr);
