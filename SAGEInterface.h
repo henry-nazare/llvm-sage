@@ -85,6 +85,11 @@ public:
 
   long getInteger(PyObject *Expr);
 
+  PyObject *getNumer(PyObject *Expr);
+  PyObject *getDenom(PyObject *Expr);
+  PyObject *getBase(PyObject *Expr);
+  PyObject *getExp(PyObject *Expr);
+
   bool isEQ(PyObject *First, PyObject *Second);
   bool isNE(PyObject *First, PyObject *Second);
 

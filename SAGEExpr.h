@@ -22,6 +22,11 @@ public:
   std::string getName() const;
   long getInteger()     const;
 
+  SAGEExpr getNumer() const;
+  SAGEExpr getDenom() const;
+  SAGEExpr getExp() const;
+  SAGEExpr getBase() const;
+
   SAGEExpr operator+(const SAGEExpr& Other)  const;
   SAGEExpr operator+(long Other)             const;
   SAGEExpr operator-(const SAGEExpr& Other)  const;

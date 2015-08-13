@@ -148,6 +148,22 @@ long SAGEInterface::getInteger(PyObject *Expr) {
   return PyInt_AsLong(Obj);
 }
 
+PyObject *SAGEInterface::getNumer(PyObject *Expr) {
+  return PI_->callSelf("get_numer", Expr, {});
+}
+
+PyObject *SAGEInterface::getDenom(PyObject *Expr) {
+  return PI_->callSelf("get_denom", Expr, {});
+}
+
+PyObject *SAGEInterface::getBase(PyObject *Expr) {
+  return PI_->callSelf("get_base", Expr, {});
+}
+
+PyObject *SAGEInterface::getExp(PyObject *Expr) {
+  return PI_->callSelf("get_exp", Expr, {});
+}
+
 bool SAGEInterface::isEQ(PyObject *First, PyObject *Second) {
   return PI_->callSelf("is_eq", First, {Second}) == Py_True;
 }
