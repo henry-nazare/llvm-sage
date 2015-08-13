@@ -69,7 +69,7 @@ public:
   std::vector<SAGEExpr> args() const;
 
   Value *toValue(IntegerType *Ty, IRBuilder<> &IRB,
-                 std::map<std::string, Value*> Value, Module *M) const;
+      const std::map<std::string, Value*> &Value, Module *M) const;
 
   void operator=(SAGEExpr& Other);
   void operator=(const SAGEExpr& Other);
