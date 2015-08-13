@@ -103,6 +103,8 @@ public:
 
   int compare(const SAGEExpr& Other) const;
 
+  SAGEInterface &getSI() const { return SI_; }
+
   friend raw_ostream& operator<<(raw_ostream& OS, const SAGEExpr& SE);
 
 private:

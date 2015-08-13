@@ -19,29 +19,51 @@ SAGERange::SAGERange(SAGEExpr Lower, SAGEExpr Upper)
 }
 
 SAGERange SAGERange::operator+(const SAGERange& Other) const {
-  return SAGERange(getLower() + Other.getLower(),
-                   getUpper() + Other.getUpper());
+  bool lowerShouldBeInf = getLower().isMinusInf()
+      || Other.getLower().isMinusInf();
+  bool upperShouldBeInf = getUpper().isPlusInf()
+      || Other.getUpper().isPlusInf();
+  auto& SI = getLower().getSI();
+  return SAGERange(lowerShouldBeInf ? SAGEExpr::getMinusInf(SI) : getLower() + Other.getLower(),
+      upperShouldBeInf ? SAGEExpr::getPlusInf(SI) : getUpper() + Other.getUpper());
 }
 
 SAGERange SAGERange::operator-(const SAGERange& Other) const {
-  return SAGERange(getLower() - Other.getUpper(),
-                   getUpper() - Other.getLower());
+  bool lowerShouldBeInf = getLower().isMinusInf()
+      || Other.getLower().isMinusInf();
+  bool upperShouldBeInf = getUpper().isPlusInf()
+      || Other.getUpper().isPlusInf();
+  auto& SI = getLower().getSI();
+  return SAGERange(lowerShouldBeInf ? SAGEExpr::getMinusInf(SI) : getLower() - Other.getLower(),
+      upperShouldBeInf ? SAGEExpr::getPlusInf(SI) : getUpper() - Other.getUpper());
 }
 
 SAGERange SAGERange::operator*(const SAGERange& Other) const {
+  bool lowerShouldBeInf = getLower().isMinusInf()
+      || Other.getLower().isMinusInf();
+  bool upperShouldBeInf = getUpper().isPlusInf()
+      || Other.getUpper().isPlusInf();
+  auto& SI = getLower().getSI();
   SAGEExpr LL = getLower() * Other.getLower(),
            LU = getLower() * Other.getUpper(),
            UL = getUpper() * Other.getLower(),
            UU = getUpper() * Other.getUpper();
-  return SAGERange(LL.min(LU).min(UL).min(UU), LL.max(LU).max(UL).max(UU));
+  return SAGERange(lowerShouldBeInf ? SAGEExpr::getMinusInf(SI) : LL.min(LU).min(UL).min(UU),
+       upperShouldBeInf ? SAGEExpr::getPlusInf(SI) : LL.max(LU).max(UL).max(UU));
 }
 
 SAGERange SAGERange::operator/(const SAGERange& Other) const {
+  bool lowerShouldBeInf = getLower().isMinusInf()
+      || Other.getLower().isMinusInf();
+  bool upperShouldBeInf = getUpper().isPlusInf()
+      || Other.getUpper().isPlusInf();
+  auto& SI = getLower().getSI();
   SAGEExpr LL = getLower()/Other.getLower(),
            LU = getLower()/Other.getUpper(),
            UL = getUpper()/Other.getLower(),
            UU = getUpper()/Other.getUpper();
-  return SAGERange(LL.min(LU).min(UL).min(UU), LL.max(LU).max(UL).max(UU));
+  return SAGERange(lowerShouldBeInf ? SAGEExpr::getMinusInf(SI) : LL.min(LU).min(UL).min(UU),
+       upperShouldBeInf ? SAGEExpr::getPlusInf(SI) : LL.max(LU).max(UL).max(UU));
 }
 
 bool SAGERange::operator==(const SAGERange& Other) const {
