@@ -167,7 +167,7 @@ class Expr(object):
     Expr.is_mul = lambda s: isinstance(s.expr, Mul)
     Expr.is_pow = lambda s: isinstance(s.expr, Pow)
 
-    Expr.get_integer = lambda s: Expr(s.expr.p)
+    Expr.get_integer = lambda s: s.expr.p
     Expr.get_numer   = lambda s: Expr(s.expr.p)
     Expr.get_denom   = lambda s: Expr(s.expr.q)
     Expr.get_exp     = lambda s: Expr(s.expr.exp)
