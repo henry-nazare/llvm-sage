@@ -277,22 +277,15 @@ class Expr(object):
 
          key = (args[i], args[j], assumptions)
          if Expr.min_cache.has_key(key):
-           rest, resf, resi = Expr.min_cache[key]
+           rest, resf = Expr.min_cache[key]
          else:
-           rest = CAD.implies(assumptions, args[i] <= args[j])
-           resf = CAD.implies(assumptions, args[i] >= args[j])
-           resi = CAD.implies(assumptions, args[i] >  args[j])
-           Expr.min_cache[key] = (rest, resf, resi)
+           rest = Min(args[i], args[j]) == args[i]
+           resf = Max(args[i], args[j]) == args[i]
+           Expr.min_cache[key] = (rest, resf)
 
-         if not (CAD.is_unknown(rest) or CAD.is_unknown(resi)) \
-             and CAD.is_true(rest) and CAD.is_true(resi):
-           del_args[i] = True
+         if CAD.is_true(rest):
            del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_true(rest) or CAD.is_false(resf)):
-           del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_false(rest) or CAD.is_true(resf)):
+         if CAD.is_true(resf):
            del_args[i] = True
 
     res_args = [args[i] for i in xrange(len(args)) if not del_args[i]]
@@ -316,22 +309,15 @@ class Expr(object):
 
          key = (args[i], args[j], assumptions)
          if Expr.max_cache.has_key(key):
-           rest, resf, resi = Expr.max_cache[key]
+           rest, resf = Expr.max_cache[key]
          else:
-           rest = CAD.implies(assumptions, args[i] >= args[j])
-           resf = CAD.implies(assumptions, args[i] <= args[j])
-           resi = CAD.implies(assumptions, args[i] <  args[j])
-           Expr.max_cache[key] = (rest, resf, resi)
+           rest = Max(args[i], args[j]) == args[i]
+           resf = Min(args[i], args[j]) == args[i]
+           Expr.max_cache[key] = (rest, resf)
 
-         if not (CAD.is_unknown(rest) or CAD.is_unknown(resi)) \
-             and CAD.is_true(rest) and CAD.is_true(resi):
-           del_args[i] = True
+         if CAD.is_true(rest):
            del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_true(rest) or CAD.is_false(resf)):
-           del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_false(rest) or CAD.is_true(resf)):
+         if CAD.is_true(resf):
            del_args[i] = True
 
     res_args = [args[i] for i in xrange(len(args)) if not del_args[i]]
