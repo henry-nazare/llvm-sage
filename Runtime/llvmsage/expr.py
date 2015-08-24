@@ -1,6 +1,7 @@
 from cad import CAD
 from sympy import And, Or, Not, Min, Max, Add, Mul, Pow, Lt, Le, Gt, Ge, \
-                  Eq, Ne, S, Integer, Rational, Symbol, Expr as SymPyExpr
+                  Eq, Ne, Integer, Rational, Symbol, Expr as SymPyExpr, \
+                  S as SymPyS
 from sympy.logic.boolalg import BooleanFunction, BooleanAtom, \
                                 BooleanTrue, BooleanFalse
 import operator
@@ -105,14 +106,10 @@ def apply_and_simplify(s, e, op, invert_on_negative=False):
   return without_invert_on_negative()
 
 def is_le(s, e, assumptions):
-  if Min(s, e) == s:
-    return s
-  return CAD.is_true(CAD.implies(assumptions, s <= e))
+  return Min(s, e) == s or Max(s, e) == e
 
 def is_ge(s, e, assumptions):
-  if Max(s, e) == s:
-    return s
-  return CAD.is_true(CAD.implies(assumptions, s >= e))
+  return Max(s, e) == s or Min(s, e) == e
 
 class Expr(object):
   initialized = False
@@ -137,8 +134,8 @@ class Expr(object):
     Expr.__pow__ = lambda s, e: Expr(s.expr ** e.expr)
     Expr.__neg__ = lambda s: Expr(-s.expr)
 
-    Expr.__eq__ = lambda s, e: Expr(Eq(s.expr, e.expr))
-    Expr.__ne__ = lambda s, e: Expr(Ne(s.expr, e.expr))
+    Expr.eq = lambda s, e: Expr(Eq(s.expr, e.expr))
+    Expr.ne = lambda s, e: Expr(Ne(s.expr, e.expr))
     Expr.__lt__ = lambda s, e: Expr(Lt(s.expr, e.expr))
     Expr.__le__ = lambda s, e: Expr(Le(s.expr, e.expr))
     Expr.__gt__ = lambda s, e: Expr(Gt(s.expr, e.expr))
@@ -148,13 +145,12 @@ class Expr(object):
     Expr.__or__     = lambda s, e: Expr(Or(s.expr,  e.expr))
     Expr.__invert__ = lambda s:    Expr(Not(s.expr))
 
-    Expr.is_eq       = lambda s, e: s.expr == e.expr
-    Expr.is_ne       = lambda s, e: s.expr != e.expr
     Expr.is_empty    = lambda s: s.is_eq(Expr.empty)
 
-    Expr.is_inf       = lambda s: s.expr == S.Infinity or s.expr == -S.Infinity
-    Expr.is_plus_inf  = lambda s: s.expr == S.Infinity
-    Expr.is_minus_inf = lambda s: s.expr == -S.Infinity
+    Expr.is_inf       = \
+        lambda s: s.expr == SymPyS.Infinity or s.expr == -SymPyS.Infinity
+    Expr.is_plus_inf  = lambda s: s.expr == SymPyS.Infinity
+    Expr.is_minus_inf = lambda s: s.expr == -SymPyS.Infinity
 
     Expr.is_constant = lambda s: isinstance(s.expr, Integer)
     Expr.is_integer  = lambda s: isinstance(s.expr, Integer)
@@ -182,15 +178,15 @@ class Expr(object):
 
   @staticmethod
   def get_nan():
-    return Expr(S.NaN)
+    return Expr(SymPyS.NaN)
 
   @staticmethod
   def get_plus_inf():
-    return Expr(S.Infinity)
+    return Expr(SymPyS.Infinity)
 
   @staticmethod
   def get_minus_inf():
-    return Expr(-S.Infinity)
+    return Expr(-SymPyS.Infinity)
 
   @staticmethod
   def get_true():
@@ -199,6 +195,18 @@ class Expr(object):
   @staticmethod
   def get_false():
     return Expr(False)
+
+  def __eq__(self, other):
+    if not hasattr(other.expr, "_sage_"):
+      return other.expr == self.expr
+
+    return self.expr == other.expr
+
+  def __ne__(self, other):
+    if not hasattr(other.expr, "_sage_"):
+      return other.expr != self.expr
+
+    return self.expr != other.expr
 
   def __init__(self, val):
     if not Expr.initialized:
@@ -210,10 +218,10 @@ class Expr(object):
     elif isinstance(val, basestring):
       self.expr = Symbol(val)
     elif isinstance(val, bool) or isinstance(val, BooleanAtom):
-      self.expr = S.One if val else S.Zero
+      self.expr = SymPyS.One if val else SymPyS.Zero
     else:
       assert isinstance(val, SymPyExpr) or isinstance(val, BooleanFunction) \
-             or (val == S.Infinity) or (val == -S.Infinity)
+             or (val == SymPyS.Infinity) or (val == -SymPyS.Infinity)
       self.expr = val
 
   def __str__(self):
@@ -277,22 +285,15 @@ class Expr(object):
 
          key = (args[i], args[j], assumptions)
          if Expr.min_cache.has_key(key):
-           rest, resf, resi = Expr.min_cache[key]
+           rest, resf = Expr.min_cache[key]
          else:
-           rest = CAD.implies(assumptions, args[i] <= args[j])
-           resf = CAD.implies(assumptions, args[i] >= args[j])
-           resi = CAD.implies(assumptions, args[i] >  args[j])
-           Expr.min_cache[key] = (rest, resf, resi)
+           rest = Min(args[i], args[j]) == args[i]
+           resf = Max(args[i], args[j]) == args[i]
+           Expr.min_cache[key] = (rest, resf)
 
-         if not (CAD.is_unknown(rest) or CAD.is_unknown(resi)) \
-             and CAD.is_true(rest) and CAD.is_true(resi):
-           del_args[i] = True
+         if CAD.is_true(rest):
            del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_true(rest) or CAD.is_false(resf)):
-           del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_false(rest) or CAD.is_true(resf)):
+         if CAD.is_true(resf):
            del_args[i] = True
 
     res_args = [args[i] for i in xrange(len(args)) if not del_args[i]]
@@ -316,28 +317,24 @@ class Expr(object):
 
          key = (args[i], args[j], assumptions)
          if Expr.max_cache.has_key(key):
-           rest, resf, resi = Expr.max_cache[key]
+           rest, resf = Expr.max_cache[key]
          else:
-           rest = CAD.implies(assumptions, args[i] >= args[j])
-           resf = CAD.implies(assumptions, args[i] <= args[j])
-           resi = CAD.implies(assumptions, args[i] <  args[j])
-           Expr.max_cache[key] = (rest, resf, resi)
+           rest = Max(args[i], args[j]) == args[i]
+           resf = Min(args[i], args[j]) == args[i]
+           Expr.max_cache[key] = (rest, resf)
 
-         if not (CAD.is_unknown(rest) or CAD.is_unknown(resi)) \
-             and CAD.is_true(rest) and CAD.is_true(resi):
-           del_args[i] = True
+         if CAD.is_true(rest):
            del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_true(rest) or CAD.is_false(resf)):
-           del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_false(rest) or CAD.is_true(resf)):
+         if CAD.is_true(resf):
            del_args[i] = True
 
     res_args = [args[i] for i in xrange(len(args)) if not del_args[i]]
     return res_args
 
   def min_or_max(self, other, op, assumptions):
+    def contains(val, array):
+      return Expr(val) in map(Expr, array)
+
     assumptions = assumptions.expr if assumptions else False
     try:
       assert op == Min or op == Max
@@ -348,26 +345,26 @@ class Expr(object):
       inv_op = Min if op == Max else Max
       cmp_op = is_le if op == Max else is_ge
       if isinstance(other.expr, inv_op):
-        if self.expr in other.expr.args:
+        if contains(self.expr, other.expr.args):
           return self
         for a in other.expr.args:
           if cmp_op(a, self.expr, assumptions):
             return self
       if isinstance(self.expr, inv_op):
-        if other.expr in self.expr.args:
+        if contains(other.expr, self.expr.args):
           return other
         for a in self.expr.args:
           if cmp_op(a, other.expr, assumptions):
             return other
 
-      if (self.expr == S.Infinity):
+      if (self.expr == SymPyS.Infinity):
         return other
-      elif (other.expr == S.Infinity):
+      elif (other.expr == SymPyS.Infinity):
         return self
 
-      if (self.expr == -S.Infinity):
+      if (self.expr == -SymPyS.Infinity):
         return self
-      elif (other.expr == -S.Infinity):
+      elif (other.expr == -SymPyS.Infinity):
         return other
 
       # TODO: handle min/max parameters.
@@ -395,5 +392,14 @@ class Expr(object):
   def size(self):
     if isinstance(self.expr, Min) or isinstance(self.expr, Max):
       return len(self.expr.args)
+    if not hasattr(self.expr, "args"):
+      return 1
+
+    if hasattr(self.expr.args, "__call__"):
+      return sum(map(lambda a: Expr(a).size(), self.expr.args()))
     return sum(map(lambda a: Expr(a).size(), self.expr.args))
+
+class S:
+  Zero = Expr(0)
+  One = Expr(1)
 
