@@ -1,4 +1,4 @@
 [submodule "Python"]
 	path = Python
 	url = https://github.com/henry-nazare/llvm-python
-	branch = sage
+	branch = v2
