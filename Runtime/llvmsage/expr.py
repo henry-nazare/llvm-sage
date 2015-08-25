@@ -287,13 +287,13 @@ class Expr(object):
          if Expr.min_cache.has_key(key):
            rest, resf = Expr.min_cache[key]
          else:
-           rest = Min(args[i], args[j]) == args[i]
-           resf = Max(args[i], args[j]) == args[i]
+           rest = is_le(args[i], args[j], assumptions)
+           resf = is_ge(args[i], args[j], assumptions)
            Expr.min_cache[key] = (rest, resf)
 
-         if CAD.is_true(rest):
+         if rest:
            del_args[j] = True
-         if CAD.is_true(resf):
+         if resf:
            del_args[i] = True
 
     res_args = [args[i] for i in xrange(len(args)) if not del_args[i]]
@@ -319,13 +319,13 @@ class Expr(object):
          if Expr.max_cache.has_key(key):
            rest, resf = Expr.max_cache[key]
          else:
-           rest = Max(args[i], args[j]) == args[i]
-           resf = Min(args[i], args[j]) == args[i]
+           rest = is_ge(args[i], args[j], assumptions)
+           resf = is_le(args[i], args[j], assumptions)
            Expr.max_cache[key] = (rest, resf)
 
-         if CAD.is_true(rest):
+         if rest:
            del_args[j] = True
-         if CAD.is_true(resf):
+         if resf:
            del_args[i] = True
 
     res_args = [args[i] for i in xrange(len(args)) if not del_args[i]]
