@@ -367,10 +367,6 @@ class Expr(object):
       elif (other.expr == -SymPyS.Infinity):
         return other
 
-      # TODO: handle min/max parameters.
-      if any(map(lambda e: e.has(Min) or e.has(Max), args)):
-        return Expr(op(self.expr, other.expr))
-
       if op == Min:
         res_args = self.reduce_min(args, assumptions)
       else:
