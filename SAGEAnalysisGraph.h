@@ -16,12 +16,12 @@ class SAGEAnalysisGraph : public llvmpy::PyObjectHolder {
 public:
   SAGEAnalysisGraph(PyObject *Graph, SAGENameVault &SNV);
 
+  void solve() const;
+
 protected:
   virtual void setNode(Value *V, PyObject *Node);
   virtual PyObject *getNode(Value *V);
   virtual PyObject *getNodeName(Value *V) const;
-
-  void solve() const;
 
   template <typename T>
   void addIncoming(iterator_range<T> RangeFrom, Value *To) {
