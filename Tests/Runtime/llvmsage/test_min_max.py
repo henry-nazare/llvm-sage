@@ -36,6 +36,26 @@ class TestMinMax(unittest.TestCase):
     self.verify_simple_expr(a.min(b).min(c).max(a), a)
     self.verify_simple_expr(a.max(b).max(c).min(a), a)
 
+  def test_simplify_mixed_min_max2(self):
+    # Max(a, Min(b, c))
+    # Cond      => Min(b, c) | Max(a, Min(b, c))
+    # a < b < c => b         | b
+    # a < c < b => c         | c
+    # b < a < c => b         | a
+    # b < c < a => b         | a
+    # c < a < b => c         | a
+    # c < b < a => c         | a
+    # For b < a (same for c < a):
+    # b < a < c => b         | a
+    # b < c < a => b         | a
+    # c < b < a => c         | a
+    self.verify_expr(b.min(c).max(a), Max, [a, b.min(c)])
+    self.verify_expr(b.max(c).min(a), Min, [a, b.max(c)])
+    self.verify_simple_expr(b.min(a - one).max(a), a)
+    self.verify_simple_expr(b.max(a + one).min(a), a)
+    self.verify_simple_expr(b.min(c).max(a, assumptions=(b < a)), a)
+    self.verify_simple_expr(b.max(c).min(a, assumptions=(b > a)), a)
+
   def test_simlpify_min_max_add_expr_constants(self):
     self.verify_expr(a.min(b).min(a + one), Min, [a, b])
     self.verify_expr(a.min(b).min(a - one), Min, [a - one, b])
@@ -83,12 +103,25 @@ class TestMinMax(unittest.TestCase):
   def test_simlpify_min_max_mul_expr_syms_with_assumptions(self):
     self.verify_expr( \
         a.min(b).min(a * n, assumptions=((a > zero) & (n > one))), Min, [a, b])
-    # TODO: the following test times out with QEPCAD (> 1 minute).
-    self.verify_expr( \
-        a.min(b).min(a/n, assumptions=((a > zero) & (n > one))), Min, [b, a/n])
     self.verify_expr( \
         a.max(b).max(a * n, assumptions=((a > zero) & (n > one))), Max,
         [b, a * n])
+
+  @unittest.expectedFailure
+  def test_simlpify_min_max_mul_expr_syms_with_assumptions_fail(self):
+    # TODO: the following tests times out with QEPCAD (> 1 minute).
+    self.verify_expr( \
+        a.min(b).min(a/n, assumptions=((a > zero) & (n > one))), Min, [b, a/n])
     self.verify_expr( \
         a.max(b).max(a/n, assumptions=((a > zero) & (n > one))), Max, [a, b])
+
+  def test_op_on_contained_min_max(self):
+    self.verify_expr( \
+        a.min(b).max(c) + one, Max, [c + one, (a + one).min(b + one)])
+    self.verify_expr( \
+        a.min(b).max(c) * two, Max, [c * two, (a * two).min(b * two)])
+    self.verify_simple_expr( \
+        a.min(b).max(c) * (-two), -min(-two * c, -(-two * a).max(-two * b)))
+    self.verify_simple_expr( \
+        a.max(b).min(c) * (-two), -max(-two * c, -(-two * a).min(-two * b)))
 

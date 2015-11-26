@@ -21,6 +21,12 @@ public:
 
   std::string getName() const;
   long getInteger()     const;
+  long getSize()        const;
+
+  SAGEExpr getNumer() const;
+  SAGEExpr getDenom() const;
+  SAGEExpr getExp() const;
+  SAGEExpr getBase() const;
 
   SAGEExpr operator+(const SAGEExpr& Other)  const;
   SAGEExpr operator+(long Other)             const;
@@ -63,7 +69,7 @@ public:
   std::vector<SAGEExpr> args() const;
 
   Value *toValue(IntegerType *Ty, IRBuilder<> &IRB,
-                 std::map<std::string, Value*> Value, Module *M) const;
+      const std::map<std::string, Value*> &Value, Module *M) const;
 
   void operator=(SAGEExpr& Other);
   void operator=(const SAGEExpr& Other);
@@ -96,6 +102,8 @@ public:
   static SAGEExpr getFalse(SAGEInterface &SI);
 
   int compare(const SAGEExpr& Other) const;
+
+  SAGEInterface &getSI() const { return SI_; }
 
   friend raw_ostream& operator<<(raw_ostream& OS, const SAGEExpr& SE);
 

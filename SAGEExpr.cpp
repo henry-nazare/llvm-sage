@@ -59,6 +59,26 @@ long SAGEExpr::getInteger() const {
   return SI_.getInteger(Expr_);
 }
 
+long SAGEExpr::getSize() const {
+  return SI_.getSize(Expr_);
+}
+
+SAGEExpr SAGEExpr::getNumer() const {
+  return SAGEExpr(SI_, SI_.getNumer(Expr_));
+}
+
+SAGEExpr SAGEExpr::getDenom() const {
+  return SAGEExpr(SI_, SI_.getDenom(Expr_));
+}
+
+SAGEExpr SAGEExpr::getExp() const {
+  return SAGEExpr(SI_, SI_.getExp(Expr_));
+}
+
+SAGEExpr SAGEExpr::getBase() const {
+  return SAGEExpr(SI_, SI_.getBase(Expr_));
+}
+
 SAGEExpr SAGEExpr::operator+(const SAGEExpr& Other) const {
   return SAGEExpr(SI_, SI_.add(Expr_, Other.getExpr()));
 }
@@ -210,7 +230,7 @@ std::vector<SAGEExpr> SAGEExpr::args() const {
 }
 
 Value *SAGEExpr::toValue(IntegerType *Ty, IRBuilder<> &IRB,
-                        std::map<std::string, Value*> Values, Module *M) const {
+    const std::map<std::string, Value*> &Values, Module *M) const {
   LLVMContext &Context = M->getContext();
   // +oo, -oo.
   if (isMinusInf()) {
@@ -221,14 +241,18 @@ Value *SAGEExpr::toValue(IntegerType *Ty, IRBuilder<> &IRB,
     return Constant::getIntegerValue(Ty, Int);
   }
 
-  // TODO: Add support for Rational.
   // Integers, symbols.
   if (isInteger()) {
     APInt Int(Ty->getBitWidth(), getInteger(), true);
     return Constant::getIntegerValue(Ty, Int);
+  } else if (isRational()) {
+    Value *Numer = getNumer().toValue(Ty, IRB, Values, M);
+    Value *Denom = getDenom().toValue(Ty, IRB, Values, M);
+    return IRB.CreateSDiv(Numer, Denom);
   } else if (isSymbol()) {
-    Value *V = Values[getName()];
-    assert(V && "Value not contained in map");
+    auto It = Values.find(getName());
+    assert(It != Values.end() && "Value not contained in map");
+    Value *V = It->second;
 
     if (V->getType() == Ty)
       return V;

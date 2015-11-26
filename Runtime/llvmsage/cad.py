@@ -1,7 +1,7 @@
 from sage.all import qepcad, qepcad_formula
 from operator import lt, le, gt, ge, eq, ne
 from sympy import And, Or, Not, StrictLessThan, LessThan, \
-                  StrictGreaterThan, GreaterThan, Unequality, Equality
+                  StrictGreaterThan, GreaterThan, Unequality, Equality, Min, Max
 from pexpect import ExceptionPexpect
 
 def run_qepcad(formula):
@@ -67,6 +67,10 @@ class CAD:
 
   @staticmethod
   def always(formula):
+    # TODO: remove Min/Max from expressions.
+    if formula.has(Min) or formula.has(Max):
+      return 'UNKNOWN'
+
     f = CAD.qf.formula(CAD.to_sage(formula))
     return run_qepcad(f)
 
@@ -78,6 +82,11 @@ class CAD:
       return 'FALSE'
     if assumptions == False:
       return CAD.always(formula)
+
+    # TODO: remove Min/Max from expressions.
+    if formula.has(Min) or formula.has(Max):
+      return 'UNKNOWN'
+
     formula = CAD.to_sage(formula)
     assumptions = CAD.complete_assumptions(assumptions)
     assumptions_str = CAD.to_qepcad(assumptions)

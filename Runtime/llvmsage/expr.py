@@ -20,6 +20,9 @@ def apply_and_simplify(s, e, op, invert_on_negative=False):
   s_cons_inv = get_min_max(s, invert=True)
   e_cons = get_min_max(e)
   e_cons_inv = get_min_max(e, invert=True)
+  do_apply = \
+      lambda sa, ea: \
+          apply_and_simplify(sa, ea, op, invert_on_negative=invert_on_negative)
 
   def without_invert_on_negative():
     # Min/Max op Min/Max
@@ -29,27 +32,27 @@ def apply_and_simplify(s, e, op, invert_on_negative=False):
       if s_cons == e_cons:
         for sa in s.args:
           for ea in e.args:
-            args.append(op(sa, ea))
+            args.append(do_apply(sa, ea))
       # Min op Max
       else:
         for sa in s.args:
           for ea in e.args:
-            args.append(op(sa, -ea))
+            args.append(do_apply(sa, -ea))
       return s_cons(*args)
 
     # Min/Max op Sym
     if s_cons != None and isinstance(e, Symbol):
-      return s_cons(*map(lambda a: op(a, e), s.args))
+      return s_cons(*map(lambda a: do_apply(a, e), s.args))
     # Sym op Min/Max
     if e_cons != None and isinstance(s, Symbol):
-      return e_cons(*map(lambda a: op(s, a), e.args))
+      return e_cons(*map(lambda a: do_apply(s, a), e.args))
 
     # Min/Max op Int
     if s_cons != None and isinstance(e, Integer):
-      return s_cons(*map(lambda a: op(a, e), s.args))
+      return s_cons(*map(lambda a: do_apply(a, e), s.args))
     # Int op Min/Max
     if e_cons != None and isinstance(s, Integer):
-      return e_cons(*map(lambda a: op(s, a), e.args))
+      return e_cons(*map(lambda a: do_apply(s, a), e.args))
 
     return op(s, e)
 
@@ -61,45 +64,55 @@ def apply_and_simplify(s, e, op, invert_on_negative=False):
       if s_cons == e_cons:
         for sa in s.args:
           for ea in e.args:
-            args.append(op(sa, ea))
+            args.append(do_apply(sa, ea))
         for sa in s.args:
           for ea in e.args:
-            args.append(op(-sa, ea))
+            args.append(do_apply(-sa, ea))
       # Min op Max
       else:
         for sa in s.args:
           for ea in e.args:
-            args.append(op(sa, -ea))
+            args.append(do_apply(sa, -ea))
         for sa in s.args:
           for ea in e.args:
-            args.append(op(-sa, -ea))
+            args.append(do_apply(-sa, -ea))
       return s_cons(*args)
 
     # Min/Max op Sym
     if s_cons != None and isinstance(e, Symbol):
-      args = map(lambda a: op(a, e), s.args) \
-          + map(lambda a: op(a, -e), s.args)
+      args = map(lambda a: do_apply(a, e), s.args) \
+          + map(lambda a: do_apply(a, -e), s.args)
       return s_cons(*args)
     # Sym op Min/Max
     if e_cons != None and isinstance(s, Symbol):
-      args = map(lambda a: op(s, a), e.args) \
-          + map(lambda a: op(-s, a), e.args)
+      args = map(lambda a: do_apply(s, a), e.args) \
+          + map(lambda a: do_apply(-s, a), e.args)
       return e_cons(*args)
 
     # Min/Max op Int
     if s_cons != None and isinstance(e, Integer):
-      cons = s_cons_inv if e < 0 else s_cons
-      return cons(*map(lambda a: op(a, e), s.args))
+      sign, cons = (-1, s_cons_inv) if e < 0 else (1, s_cons)
+      return sign * cons(*map(lambda a: do_apply(a, e), s.args))
     # Int op Min/Max
     if e_cons != None and isinstance(s, Integer):
-      cons = e_cons_inv if s < 0 else e_cons
-      return cons(*map(lambda a: op(s, a), e.args))
+      sign, cons = (-1, e_cons_inv) if s < 0 else (1, e_cons)
+      return sign * cons(*map(lambda a: do_apply(s, a), e.args))
 
     return op(s, e)
 
   if invert_on_negative:
     return with_invert_on_negative()
   return without_invert_on_negative()
+
+def is_le(s, e, assumptions):
+  if Min(s, e) == s:
+    return s
+  return CAD.is_true(CAD.implies(assumptions, s <= e))
+
+def is_ge(s, e, assumptions):
+  if Max(s, e) == s:
+    return s
+  return CAD.is_true(CAD.implies(assumptions, s >= e))
 
 class Expr(object):
   initialized = False
@@ -155,8 +168,10 @@ class Expr(object):
     Expr.is_pow = lambda s: isinstance(s.expr, Pow)
 
     Expr.get_integer = lambda s: s.expr.p
-    Expr.get_numer   = lambda s: s.expr.p
-    Expr.get_denom   = lambda s: s.expr.q
+    Expr.get_numer   = lambda s: Expr(s.expr.p)
+    Expr.get_denom   = lambda s: Expr(s.expr.q)
+    Expr.get_exp     = lambda s: Expr(s.expr.exp)
+    Expr.get_base    = lambda s: Expr(s.expr.base)
 
     Expr.get_name = lambda s: s.expr.name
 
@@ -262,22 +277,15 @@ class Expr(object):
 
          key = (args[i], args[j], assumptions)
          if Expr.min_cache.has_key(key):
-           rest, resf, resi = Expr.min_cache[key]
+           rest, resf = Expr.min_cache[key]
          else:
-           rest = CAD.implies(assumptions, args[i] <= args[j])
-           resf = CAD.implies(assumptions, args[i] >= args[j])
-           resi = CAD.implies(assumptions, args[i] >  args[j])
-           Expr.min_cache[key] = (rest, resf, resi)
+           rest = Min(args[i], args[j]) == args[i]
+           resf = Max(args[i], args[j]) == args[i]
+           Expr.min_cache[key] = (rest, resf)
 
-         if not (CAD.is_unknown(rest) or CAD.is_unknown(resi)) \
-             and CAD.is_true(rest) and CAD.is_true(resi):
-           del_args[i] = True
+         if CAD.is_true(rest):
            del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_true(rest) or CAD.is_false(resf)):
-           del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_false(rest) or CAD.is_true(resf)):
+         if CAD.is_true(resf):
            del_args[i] = True
 
     res_args = [args[i] for i in xrange(len(args)) if not del_args[i]]
@@ -301,39 +309,42 @@ class Expr(object):
 
          key = (args[i], args[j], assumptions)
          if Expr.max_cache.has_key(key):
-           rest, resf, resi = Expr.max_cache[key]
+           rest, resf = Expr.max_cache[key]
          else:
-           rest = CAD.implies(assumptions, args[i] >= args[j])
-           resf = CAD.implies(assumptions, args[i] <= args[j])
-           resi = CAD.implies(assumptions, args[i] <  args[j])
-           Expr.max_cache[key] = (rest, resf, resi)
+           rest = Max(args[i], args[j]) == args[i]
+           resf = Min(args[i], args[j]) == args[i]
+           Expr.max_cache[key] = (rest, resf)
 
-         if not (CAD.is_unknown(rest) or CAD.is_unknown(resi)) \
-             and CAD.is_true(rest) and CAD.is_true(resi):
-           del_args[i] = True
+         if CAD.is_true(rest):
            del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_true(rest) or CAD.is_false(resf)):
-           del_args[j] = True
-         elif not (CAD.is_unknown(rest) or CAD.is_unknown(resf)) \
-             and (CAD.is_false(rest) or CAD.is_true(resf)):
+         if CAD.is_true(resf):
            del_args[i] = True
 
     res_args = [args[i] for i in xrange(len(args)) if not del_args[i]]
     return res_args
 
   def min_or_max(self, other, op, assumptions):
+    assumptions = assumptions.expr if assumptions else False
     try:
       assert op == Min or op == Max
       args = Expr.minmax_args(self.expr, op) + \
              Expr.minmax_args(other.expr, op)
 
+      # Max(a, Min(b, c)) or Min(a, Max(b, c))
       inv_op = Min if op == Max else Max
+      cmp_op = is_le if op == Max else is_ge
       if isinstance(other.expr, inv_op):
         if self.expr in other.expr.args:
           return self
-      if isinstance(self.expr, inv_op) and other.expr in self.expr.args:
-        return other
+        for a in other.expr.args:
+          if cmp_op(a, self.expr, assumptions):
+            return self
+      if isinstance(self.expr, inv_op):
+        if other.expr in self.expr.args:
+          return other
+        for a in self.expr.args:
+          if cmp_op(a, other.expr, assumptions):
+            return other
 
       if (self.expr == S.Infinity):
         return other
@@ -350,11 +361,9 @@ class Expr(object):
         return Expr(op(self.expr, other.expr))
 
       if op == Min:
-        res_args = \
-          self.reduce_min(args, assumptions.expr if assumptions else False)
+        res_args = self.reduce_min(args, assumptions)
       else:
-        res_args = \
-          self.reduce_max(args, assumptions.expr if assumptions else False)
+        res_args = self.reduce_max(args, assumptions)
       if not res_args:
         return Expr.empty
       return Expr(op(*res_args))
@@ -370,5 +379,7 @@ class Expr(object):
     return self.min_or_max(other, Max, assumptions)
 
   def size(self):
-    return len(self.expr.args)
+    if isinstance(self.expr, Min) or isinstance(self.expr, Max):
+      return len(self.expr.args)
+    return sum(map(lambda a: Expr(a).size(), self.expr.args))
 

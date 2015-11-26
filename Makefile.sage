@@ -2,16 +2,16 @@
 ##===----------------------------------------------------------------------===##
 
 SAGE_VERSION = 6.8
-SAGE_INSTALLED_VERSION = $(shell sage --version)
+SAGE_INSTALLED_VERSION = $(shell sage -version)
 
 QEPCAD_PACKAGE_URL = http://cuda.dcc.ufmg.br/sage/qepcad-1.50.spkg
 
-ifneq ($(findstring Sage Version $(SAGE_VERSION),$(SAGE_INSTALLED_VERSION)),)
+ifneq ($(findstring SageMath Version $(SAGE_VERSION),$(SAGE_INSTALLED_VERSION)),)
   ifeq ($(shell sage -c "print is_package_installed('qepcad')"),False)
     $(error Please install the QEPCAD package for SAGE)
   endif
 
-./bin/sage: sage
+./bin/sage:
 	ln -s $(shell which sage) $@
 
 else
