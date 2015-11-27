@@ -4,6 +4,7 @@ from sympy import And, Or, Not, Min, Max, Add, Mul, Pow, Lt, Le, Gt, Ge, \
 from sympy.logic.boolalg import BooleanFunction, BooleanAtom, \
                                 BooleanTrue, BooleanFalse
 import operator
+import traceback
 
 def is_min_max(s):
   return isinstance(s, Min) or isinstance(s, Max)
@@ -14,6 +15,18 @@ def get_min_max(s, invert=False):
   if isinstance(s, Max):
     return (Max if not invert else Min)
   return None
+
+def is_inf(s):
+  return s == S.Infinity or s  == -S.Infinity
+
+def operator_div(lhs, rhs):
+  if is_inf(lhs) and not is_inf(rhs):
+    return lhs
+  if not is_inf(lhs) and is_inf(rhs):
+    return S.Zero
+  if rhs == S.Zero:
+    return S.Infinity
+  return lhs/rhs
 
 def apply_and_simplify(s, e, op, invert_on_negative=False):
   s_cons = get_min_max(s)
@@ -132,7 +145,7 @@ class Expr(object):
         lambda s, e: Expr(apply_and_simplify(s.expr, e.expr, operator.mul, \
             invert_on_negative=True))
     Expr.__div__ = \
-        lambda s, e: Expr(apply_and_simplify(s.expr, e.expr, operator.div, \
+        lambda s, e: Expr(apply_and_simplify(s.expr, e.expr, operator_div, \
             invert_on_negative=True))
     Expr.__pow__ = lambda s, e: Expr(s.expr ** e.expr)
     Expr.__neg__ = lambda s: Expr(-s.expr)
@@ -370,6 +383,7 @@ class Expr(object):
     except BaseException as b:
       print "Exception triggered: min_or_max", self, other
       print b
+      traceback.print_exc()
       raise
 
   def min(self, other, assumptions=None):
