@@ -6,8 +6,11 @@ from pexpect import ExceptionPexpect
 
 def run_qepcad(formula):
   try:
-    # Time out QEPCAD after 2 seconds.
-    return qepcad(formula, timeout=2)
+    try:
+      # Time out QEPCAD after 2 seconds.
+      return qepcad(formula, timeout=2)
+    except TypeError:
+      return qepcad(formula)
   except ExceptionPexpect:
     return 'UNKNOWN'
 
