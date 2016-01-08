@@ -11,6 +11,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/Debug.h"
 
+#include <cstdlib>
 #include <map>
 #include <string>
 
@@ -319,6 +320,7 @@ Value *SAGEExpr::toValue(IntegerType *Ty, IRBuilder<> &IRB,
   }
 
   assert(false && "Unhandled expression");
+  std::abort();
 }
 
 void SAGEExpr::operator=(const SAGEExpr& Other) {
