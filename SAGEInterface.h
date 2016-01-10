@@ -6,6 +6,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include <memory>
 #include <vector>
 
 #undef NAN
@@ -44,6 +45,7 @@ public:
   }
 
   virtual void getAnalysisUsage(AnalysisUsage &AU) const;
+  virtual bool doFinalization(Module&);
   virtual bool runOnModule(Module&);
 
   PyObject *var(const long Val);
@@ -114,7 +116,7 @@ public:
 
 private:
   PythonInterface *PI_;
-  PythonInterface::PythonObjVec *ObjVec_;
+  std::unique_ptr<PythonInterface::PythonObjVec> ObjVec_;
 };
 
 #endif

@@ -15,25 +15,30 @@ void SAGEInterface::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.setPreservesAll();
 }
 
+bool SAGEInterface::doFinalization(Module &) {
+  ObjVec_.reset();
+  return false;
+}
+
 bool SAGEInterface::runOnModule(Module& M) {
   PI_ = &getAnalysis<PythonInterface>();
 
-  ObjVec_ = PI_->createObjVec(getObjVecInit());
+  ObjVec_.reset(PI_->createObjVec(getObjVecInit()));
   assert(ObjVec_);
 
   return false;
 }
 
 PyObject *SAGEInterface::var(const long Val) {
-  return PI_->call(ObjVec_, FN_EXPR_INIT, {PyLong_FromLong(Val)});
+  return PI_->call(ObjVec_.get(), FN_EXPR_INIT, {PyLong_FromLong(Val)});
 }
 
 PyObject *SAGEInterface::var(const unsigned long Val) {
-  return PI_->call(ObjVec_, FN_EXPR_INIT, {PyLong_FromUnsignedLong(Val)});
+  return PI_->call(ObjVec_.get(), FN_EXPR_INIT, {PyLong_FromUnsignedLong(Val)});
 }
 
 PyObject *SAGEInterface::var(const char *Str) {
-  return PI_->call(ObjVec_, FN_EXPR_INIT, {PyString_FromString(Str)});
+  return PI_->call(ObjVec_.get(), FN_EXPR_INIT, {PyString_FromString(Str)});
 }
 
 std::string SAGEInterface::getName(PyObject *Expr) {
@@ -123,23 +128,23 @@ std::vector<PyObject*> SAGEInterface::args(PyObject *Expr) {
 }
 
 PyObject *SAGEInterface::getNaN() {
-  return PI_->call(ObjVec_, FN_NAN, {});
+  return PI_->call(ObjVec_.get(), FN_NAN, {});
 }
 
 PyObject *SAGEInterface::getPlusInf() {
-  return PI_->call(ObjVec_, FN_PLUS_INF, {});
+  return PI_->call(ObjVec_.get(), FN_PLUS_INF, {});
 }
 
 PyObject *SAGEInterface::getMinusInf() {
-  return PI_->call(ObjVec_, FN_MINUS_INF, {});
+  return PI_->call(ObjVec_.get(), FN_MINUS_INF, {});
 }
 
 PyObject *SAGEInterface::getTrue() {
-  return PI_->call(ObjVec_, FN_TRUE, {});
+  return PI_->call(ObjVec_.get(), FN_TRUE, {});
 }
 
 PyObject *SAGEInterface::getFalse() {
-  return PI_->call(ObjVec_, FN_FALSE, {});
+  return PI_->call(ObjVec_.get(), FN_FALSE, {});
 }
 
 long SAGEInterface::getInteger(PyObject *Expr) {
